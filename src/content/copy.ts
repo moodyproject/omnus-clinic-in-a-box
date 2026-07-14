@@ -133,7 +133,7 @@ export const forms = {
       email: 'work email',
       organization: 'organization or clinic',
       role: 'role',
-      message: 'anything specific you want to see? (optional)',
+      message: 'anything specific you want to see?',
     },
     submit: 'request a demo',
     success: 'thank you. we’ll reach out to schedule your walkthrough.',

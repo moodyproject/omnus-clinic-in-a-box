@@ -42,6 +42,7 @@ export function Chair({
   const mats = getMaterials()
   return (
     <group position={position} rotation-y={rotationY}>
+      <ShadowOval w={0.075} d={0.075} opacity={0.2} />
       {/* seat */}
       <mesh position={[0, 0.042, 0]} material={task ? mats.deskTop : mats.furniture}>
         <boxGeometry args={[0.044, 0.008, 0.042]} />
@@ -82,17 +83,20 @@ export function Desk({
   rotationY = 0,
   w = 0.16,
   d = 0.07,
+  warm = false,
 }: {
   position: [number, number, number]
   rotationY?: number
   w?: number
   d?: number
+  /** oak work surface instead of the dark one (reception, waiting) */
+  warm?: boolean
 }) {
   const mats = getMaterials()
   return (
     <group position={position} rotation-y={rotationY}>
       <ShadowOval w={w * 1.5} d={d * 2.2} />
-      <mesh position={[0, 0.078, 0]} material={mats.deskTop}>
+      <mesh position={[0, 0.078, 0]} material={warm ? mats.oak : mats.deskTop}>
         <boxGeometry args={[w, 0.006, d]} />
       </mesh>
       {/* porcelain body panels */}
@@ -267,7 +271,7 @@ export function SideTable({ position }: { position: [number, number, number] }) 
   return (
     <group position={position}>
       <ShadowOval w={0.09} d={0.09} opacity={0.22} />
-      <mesh position={[0, 0.032, 0]} material={mats.furniture}>
+      <mesh position={[0, 0.032, 0]} material={mats.oak}>
         <cylinderGeometry args={[0.032, 0.032, 0.006, 16]} />
       </mesh>
       <mesh position={[0, 0.015, 0]} material={mats.structure}>
@@ -327,11 +331,14 @@ export function Counter({
   rotationY = 0,
   w = 0.3,
   basin = false,
+  warm = false,
 }: {
   position: [number, number, number]
   rotationY?: number
   w?: number
   basin?: boolean
+  /** oak worktop instead of the dark one */
+  warm?: boolean
 }) {
   const mats = getMaterials()
   return (
@@ -346,7 +353,7 @@ export function Counter({
         <boxGeometry args={[w, 0.05, 0.06]} />
       </mesh>
       {/* top */}
-      <mesh position={[0, 0.0765, 0]} material={mats.deskTop}>
+      <mesh position={[0, 0.0765, 0]} material={warm ? mats.oak : mats.deskTop}>
         <boxGeometry args={[w + 0.008, 0.007, 0.066]} />
       </mesh>
       {/* door seams */}

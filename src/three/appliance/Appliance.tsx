@@ -185,6 +185,27 @@ export function Appliance({ quality }: { quality: Quality }) {
           <CeilingRibs count={quality.tier === 'high' ? 15 : 9} />
         </group>
 
+        {/* machined edge highlights along the top chamfer: a quiet bevel
+            catch-light that separates the sleeve from the backdrop */}
+        {[
+          { pos: [0, DEVICE.sleeveH - 0.008, DEVICE.d / 2 - 0.022] as const, size: [DEVICE.w - 0.16, 0.004, 0.004] as const },
+          { pos: [DEVICE.w / 2 - 0.022, DEVICE.sleeveH - 0.008, 0] as const, size: [0.004, 0.004, DEVICE.d - 0.16] as const },
+          { pos: [-(DEVICE.w / 2 - 0.022), DEVICE.sleeveH - 0.008, 0] as const, size: [0.004, 0.004, DEVICE.d - 0.16] as const },
+        ].map((edge, i) => (
+          <mesh
+            key={i}
+            position={[edge.pos[0], SLEEVE_BASE + edge.pos[1], edge.pos[2]]}
+            material={mats.fin}
+          >
+            <boxGeometry args={edge.size as unknown as [number, number, number]} />
+          </mesh>
+        ))}
+
+        {/* panel-gap reveal where the sleeve meets the chassis */}
+        <mesh position={[0, SLEEVE_BASE + 0.012, DEVICE.d / 2 + 0.0045]} material={mats.inset}>
+          <boxGeometry args={[DEVICE.w - 0.1, 0.0035, 0.002]} />
+        </mesh>
+
         {/* front face: clean fascia with restrained instrumentation */}
         <group position={[0, 0, DEVICE.d / 2 + 0.004]}>
           {/* recessed status display, upper right */}

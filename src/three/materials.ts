@@ -36,6 +36,8 @@ export interface Materials {
   deck: THREE.MeshStandardMaterial
   /** dark work surfaces */
   deskTop: THREE.MeshStandardMaterial
+  /** warm oak surfaces: reception counters and waiting-area furniture */
+  oak: THREE.MeshStandardMaterial
   /** porcelain furniture bodies */
   furniture: THREE.MeshStandardMaterial
   /** loose documents and lab coats */
@@ -44,8 +46,6 @@ export interface Materials {
   bezel: THREE.MeshStandardMaterial
   /** the single sage accent, emissive */
   sage: THREE.MeshStandardMaterial
-  /** dimmer sage for floor information paths */
-  sagePath: THREE.MeshStandardMaterial
   dispose(): void
 }
 
@@ -65,13 +65,14 @@ export function getMaterials(): Materials {
     inset: std({ color: '#232629', metalness: 0.6, roughness: 0.5, envMapIntensity: 1.0 }),
     chassis: std({ color: '#2b2e32', metalness: 0.75, roughness: 0.38, envMapIntensity: 1.15 }),
     fin: std({ color: '#5a5f66', metalness: 0.82, roughness: 0.36, envMapIntensity: 1.3 }),
-    floor: std({ color: '#e7e3d9', roughness: 0.92 }),
-    corridor: std({ color: '#f3f1eb', roughness: 0.88 }),
-    rug: std({ color: '#ddd8ca', roughness: 0.96 }),
+    floor: std({ color: '#e2dccd', roughness: 0.92 }),
+    corridor: std({ color: '#f1eee5', roughness: 0.88 }),
+    rug: std({ color: '#d3cbb8', roughness: 0.96 }),
     wall: std({ color: '#fcfbf8', roughness: 0.95 }),
-    structure: std({ color: '#26282c', metalness: 0.65, roughness: 0.5 }),
+    structure: std({ color: '#34383d', metalness: 0.6, roughness: 0.52 }),
     deck: std({ color: '#3c4045', metalness: 0.75, roughness: 0.32, envMapIntensity: 1.5 }),
     deskTop: std({ color: '#2b2e32', metalness: 0.35, roughness: 0.5 }),
+    oak: std({ color: '#a8895f', roughness: 0.72 }),
     furniture: std({ color: '#efece4', roughness: 0.85 }),
     paper: std({ color: '#fbfaf7', roughness: 1, side: THREE.DoubleSide }),
     bezel: std({ color: '#141619', metalness: 0.5, roughness: 0.45 }),
@@ -80,12 +81,6 @@ export function getMaterials(): Materials {
       emissive: sageColor,
       emissiveIntensity: 1.1,
       roughness: 0.45,
-    }),
-    sagePath: std({
-      color: sageColor,
-      emissive: sageColor,
-      emissiveIntensity: 0.55,
-      roughness: 0.5,
     }),
     dispose() {
       for (const value of Object.values(mats)) {

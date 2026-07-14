@@ -1,7 +1,7 @@
 import * as THREE from 'three'
-import { useEffect, useMemo, useRef } from 'react'
+import { useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { getMaterials, PALETTE } from '../materials'
+import { getMaterials } from '../materials'
 import { CLINIC } from '../constants'
 import { mulberry32 } from '../../lib/rng'
 import { lerp } from '../../lib/math'
@@ -31,32 +31,19 @@ export function Reception({ detailed }: { detailed: boolean }) {
   const papersRef = useRef<THREE.InstancedMesh>(null)
   const blocksRef = useRef<THREE.InstancedMesh>(null)
 
-  const threadMat = useMemo(
-    () =>
-      new THREE.MeshStandardMaterial({
-        color: PALETTE.sage,
-        emissive: PALETTE.sage,
-        emissiveIntensity: 1.4,
-        transparent: true,
-        opacity: 0,
-      }),
-    [],
-  )
-  useEffect(() => () => threadMat.dispose(), [threadMat])
-
   const layouts = useMemo(() => {
     const rand = mulberry32(101)
     const papers: { from: Pose; to: Pose }[] = []
     for (let i = 0; i < N_PAPERS; i++) {
+      // loose intake forms live on the desk and the back counter, never the
+      // floor: worked paper, not mess
       const onDesk = i < 6
       papers.push({
         from: {
-          p: [
-            -0.42 + rand() * 0.22,
-            onDesk ? DESK_TOP + rand() * 0.004 : FLOOR + 0.002,
-            0.24 + rand() * 0.24,
-          ],
-          r: [0, rand() * 2.4 - 1.2, onDesk ? 0 : (rand() - 0.5) * 0.06],
+          p: onDesk
+            ? [-0.29 + rand() * 0.07, DESK_TOP + rand() * 0.004, 0.26 + rand() * 0.15]
+            : [-0.44 + rand() * 0.18, FLOOR + 0.081 + rand() * 0.003, 0.5 + rand() * 0.035],
+          r: [0, rand() * 2.4 - 1.2, 0],
         },
         to: {
           p: [-0.305, DESK_TOP + 0.002 + i * 0.0019, 0.345],
@@ -114,17 +101,15 @@ export function Reception({ detailed }: { detailed: boolean }) {
 
     apply(papersRef.current, layouts.papers)
     apply(blocksRef.current, layouts.blocks)
-
-    threadMat.opacity = swin(s, 0.65, 0.95)
   })
 
   return (
     <group>
       {/* reception counter facing the corridor */}
-      <Desk position={[-0.24, FLOOR, 0.33]} rotationY={-Math.PI / 2} w={0.18} d={0.075} />
+      <Desk position={[-0.24, FLOOR, 0.33]} rotationY={-Math.PI / 2} w={0.18} d={0.075} warm />
       <Monitor
-        position={[-0.245, DESK_TOP, 0.295]}
-        rotationY={Math.PI / 2 + 0.35}
+        position={[-0.245, DESK_TOP, 0.375]}
+        rotationY={Math.PI / 2 + 0.2}
         kind="schedule"
       />
       <Chair position={[-0.31, FLOOR, 0.33]} rotationY={Math.PI / 2} task />
@@ -139,7 +124,7 @@ export function Reception({ detailed }: { detailed: boolean }) {
       <Kiosk position={[-0.17, FLOOR, 0.51]} rotationY={0.9} />
 
       {/* built-in back counter and staff coats: the room is lived in */}
-      <Counter position={[-0.34, FLOOR, 0.52]} rotationY={Math.PI} w={0.32} />
+      <Counter position={[-0.34, FLOOR, 0.52]} rotationY={Math.PI} w={0.32} warm />
       {detailed && <CoatRail position={[-0.2, FLOOR, 0.147]} rotationY={0} />}
 
       {/* intake forms and referral documents, scattered then resolved */}
@@ -158,11 +143,6 @@ export function Reception({ detailed }: { detailed: boolean }) {
       >
         <boxGeometry args={[0.02, 0.013, 0.005]} />
       </instancedMesh>
-
-      {/* the organized patient thread, rising from the resolved stack */}
-      <mesh position={[-0.305, 0.38, 0.345]} material={threadMat}>
-        <cylinderGeometry args={[0.0022, 0.0022, 0.34, 6]} />
-      </mesh>
     </group>
   )
 }

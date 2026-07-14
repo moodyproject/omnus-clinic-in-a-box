@@ -99,6 +99,81 @@ function drawSchedule(): THREE.CanvasTexture {
   return toTexture(canvas)
 }
 
+/**
+ * exam wall display, staged: the interface fills in as the visit progresses.
+ * stage 0: live video only. stage 1: transcript rows arrive. stage 2:
+ * structured extraction chips complete. drawn as three textures that the
+ * exam room crossfades under scroll control.
+ */
+export function makeVisitStageTexture(stage: 0 | 1 | 2): THREE.CanvasTexture {
+  const { canvas, ctx } = makeCanvas(640, 360)
+  const rand = mulberry32(23)
+  ctx.fillStyle = S.bg
+  ctx.fillRect(0, 0, 640, 360)
+
+  // video tile with live dot (all stages)
+  ctx.fillStyle = S.panel
+  rr(ctx, 26, 26, 250, 156, 10)
+  ctx.fill()
+  ctx.fillStyle = S.sage
+  ctx.beginPath()
+  ctx.arc(44, 44, 4, 0, Math.PI * 2)
+  ctx.fill()
+  ctx.fillStyle = S.dim
+  ctx.font = `500 13px ${FONT}`
+  ctx.fillText('live visit', 56, 48)
+
+  // waveform strip: quiet at stage 0, active afterwards
+  for (let i = 0; i < 42; i++) {
+    const active = stage > 0 ? 1 : 0.25
+    const h = (3 + Math.abs(Math.sin(i * 0.55)) * 14 * (0.4 + rand() * 0.6)) * active
+    ctx.fillStyle = stage > 0 ? S.sage : S.faint
+    ctx.fillRect(28 + i * 6, 214 - h / 2, 3, h)
+  }
+  ctx.fillStyle = S.dim
+  ctx.font = `500 12px ${FONT}`
+  ctx.fillText(stage > 0 ? 'transcribing' : 'listening', 28, 246)
+
+  // transcript column: empty rules at stage 0, rows fill at stage 1+
+  for (let i = 0; i < 9; i++) {
+    const y = 32 + i * 24
+    const w = 120 + rand() * 190
+    if (stage === 0) {
+      ctx.fillStyle = S.faint
+      rr(ctx, 306, y, 300, 1.5, 1)
+      ctx.fill()
+    } else {
+      ctx.fillStyle = i % 3 === 0 ? S.dim : S.faint
+      rr(ctx, 306, y, w, 9, 4)
+      ctx.fill()
+    }
+  }
+
+  // extraction chips: outlined at stages 0-1, filled at stage 2
+  const chips = ['symptoms', 'medications', 'history', 'assessment', 'plan', 'follow-up']
+  ctx.font = `500 13px ${FONT}`
+  chips.forEach((label, i) => {
+    const x = 26 + (i % 3) * 200
+    const y = 272 + Math.floor(i / 3) * 42
+    if (stage === 2) {
+      ctx.fillStyle = S.panel
+      rr(ctx, x, y, 184, 32, 7)
+      ctx.fill()
+      ctx.fillStyle = S.sage
+      ctx.fillRect(x, y, 3, 32)
+      ctx.fillStyle = S.ink
+      ctx.fillText(label, x + 14, y + 21)
+    } else {
+      ctx.strokeStyle = S.faint
+      rr(ctx, x, y, 184, 32, 7)
+      ctx.stroke()
+      ctx.fillStyle = S.faint
+      ctx.fillText(label, x + 14, y + 21)
+    }
+  })
+  return toTexture(canvas)
+}
+
 /** exam wall display: live visit with transcript and extraction chips */
 function drawVisit(): THREE.CanvasTexture {
   const { canvas, ctx } = makeCanvas(640, 360)
@@ -223,6 +298,61 @@ function drawKiosk(): THREE.CanvasTexture {
   return toTexture(canvas)
 }
 
+/**
+ * ops inbox, staged: stage 0 is a loaded queue (six items, three urgent),
+ * stage 1 is the same inbox worked down to a calm state. crossfaded by the
+ * ops scene under scroll control.
+ */
+export function makeInboxStageTexture(stage: 0 | 1): THREE.CanvasTexture {
+  const { canvas, ctx } = makeCanvas(512, 320)
+  const rand = mulberry32(53)
+  ctx.fillStyle = S.bg
+  ctx.fillRect(0, 0, 512, 320)
+  ctx.fillStyle = S.dim
+  ctx.font = `500 15px ${FONT}`
+  ctx.fillText('clinic inbox', 28, 40)
+  const rows = stage === 0 ? 6 : 2
+  for (let i = 0; i < 6; i++) {
+    const y = 66 + i * 40
+    const w1 = 80 + rand() * 70
+    const w2 = 120 + rand() * 120
+    if (i >= rows) {
+      // resolved row: a thin settled rule with a small check
+      ctx.strokeStyle = S.faint
+      ctx.beginPath()
+      ctx.moveTo(28, y + 15)
+      ctx.lineTo(484, y + 15)
+      ctx.stroke()
+      ctx.strokeStyle = S.sageDim
+      ctx.beginPath()
+      ctx.moveTo(40, y + 15)
+      ctx.lineTo(45, y + 20)
+      ctx.lineTo(54, y + 8)
+      ctx.stroke()
+      continue
+    }
+    ctx.fillStyle = S.panel
+    rr(ctx, 28, y, 456, 30, 6)
+    ctx.fill()
+    if (stage === 0 && i < 3) {
+      ctx.fillStyle = S.sage
+      ctx.beginPath()
+      ctx.arc(46, y + 15, 3.5, 0, Math.PI * 2)
+      ctx.fill()
+    }
+    ctx.fillStyle = S.dim
+    ctx.fillRect(62, y + 12, w1, 5)
+    ctx.fillStyle = S.faint
+    ctx.fillRect(200, y + 12, w2, 5)
+  }
+  if (stage === 1) {
+    ctx.fillStyle = S.sage
+    ctx.font = `500 13px ${FONT}`
+    ctx.fillText('queue clear by end of day', 28, 302)
+  }
+  return toTexture(canvas)
+}
+
 /** ops nook: shared inbox queue */
 function drawInbox(): THREE.CanvasTexture {
   const { canvas, ctx } = makeCanvas(512, 320)
@@ -256,17 +386,17 @@ function drawStatus(): THREE.CanvasTexture {
   const { canvas, ctx } = makeCanvas(512, 128)
   ctx.fillStyle = '#0b0c0e'
   ctx.fillRect(0, 0, 512, 128)
-  ctx.fillStyle = 'rgba(238, 236, 229, 0.66)'
-  ctx.font = `500 34px ${FONT}`
+  ctx.fillStyle = 'rgba(240, 238, 231, 0.82)'
+  ctx.font = `500 38px ${FONT}`
   ctx.textBaseline = 'middle'
   ctx.fillText('omnus os', 44, 64)
   ctx.fillStyle = S.sage
   ctx.beginPath()
-  ctx.arc(320, 64, 7, 0, Math.PI * 2)
+  ctx.arc(330, 64, 7, 0, Math.PI * 2)
   ctx.fill()
-  ctx.fillStyle = 'rgba(238, 236, 229, 0.38)'
-  ctx.font = `500 26px ${FONT}`
-  ctx.fillText('ready', 344, 65)
+  ctx.fillStyle = 'rgba(240, 238, 231, 0.52)'
+  ctx.font = `500 27px ${FONT}`
+  ctx.fillText('ready', 354, 65)
   return toTexture(canvas)
 }
 

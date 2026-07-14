@@ -3,20 +3,18 @@ import { useEffect, useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { getMaterials, PALETTE } from '../materials'
 import { CLINIC } from '../constants'
-import type { SceneId } from '../../content/copy'
 import { smoothedState, sceneT, swin, shellOpen } from '../../scroll/journey'
 import { makeLabelTexture, useFontsReady } from '../textures'
-import { InfoPath } from './InfoPath'
 import { Reception } from './Reception'
 import { ExamRoom } from './ExamRoom'
 import { ReviewStation } from './ReviewStation'
 import { FollowThrough } from './FollowThrough'
 import { OpsLayer } from './OpsLayer'
+import { People } from './people/People'
 import type { Quality } from '../../hooks/useMediaFlags'
 
 const T = 0.016
 const FLOOR = CLINIC.floorY
-const ROUTE_Y = FLOOR + 0.007
 
 /** one interior partition or perimeter wall, with a slim graphite cap trim */
 function Wall({
@@ -109,89 +107,6 @@ function FloorLabel({
   )
 }
 
-const ROUTES: { id: SceneId; pts: [number, number, number][] }[] = [
-  // entrance spine, emerging from the chassis bus bar
-  { id: 'before', pts: [[0, ROUTE_Y, 0.585], [0, ROUTE_Y, -0.02]] },
-  // intake to core
-  {
-    id: 'before',
-    pts: [
-      [-0.22, ROUTE_Y, 0.24],
-      [-0.22, ROUTE_Y, 0.016],
-      [-0.016, ROUTE_Y, 0.016],
-      [-0.016, ROUTE_Y, -0.028],
-    ],
-  },
-  // exam to core
-  {
-    id: 'during',
-    pts: [
-      [0.22, ROUTE_Y, 0.24],
-      [0.22, ROUTE_Y, 0.016],
-      [0.016, ROUTE_Y, 0.016],
-      [0.016, ROUTE_Y, -0.028],
-    ],
-  },
-  // structured context: exam room to review station
-  {
-    id: 'review',
-    pts: [
-      [0.42, ROUTE_Y, 0.18],
-      [0.245, ROUTE_Y, 0.18],
-      [0.245, ROUTE_Y, -0.2],
-      [0.34, ROUTE_Y, -0.2],
-      [0.34, ROUTE_Y, -0.36],
-    ],
-  },
-  // review to core
-  {
-    id: 'after',
-    pts: [
-      [0.26, ROUTE_Y, -0.24],
-      [0.26, ROUTE_Y, -0.044],
-      [0.03, ROUTE_Y, -0.044],
-    ],
-  },
-  // follow-through to core
-  {
-    id: 'after',
-    pts: [
-      [-0.26, ROUTE_Y, -0.24],
-      [-0.26, ROUTE_Y, -0.044],
-      [-0.03, ROUTE_Y, -0.044],
-    ],
-  },
-  // scheduling rack to core
-  {
-    id: 'ops',
-    pts: [
-      [-0.44, ROUTE_Y, 0.032],
-      [-0.05, ROUTE_Y, 0.032],
-      [-0.05, ROUTE_Y, -0.02],
-    ],
-  },
-  // inbox nook to core
-  {
-    id: 'ops',
-    pts: [
-      [0.44, ROUTE_Y, 0.032],
-      [0.05, ROUTE_Y, 0.032],
-      [0.05, ROUTE_Y, -0.02],
-    ],
-  },
-]
-
-function makeRouteIntensity(id: SceneId) {
-  return () => {
-    const p = smoothedState.p
-    const s = sceneT(p, id)
-    const own = swin(s, 0.05, 0.35) * (1 - 0.4 * swin(s, 0.92, 1))
-    const ops = swin(sceneT(p, 'ops'), 0.08, 0.4)
-    const converge = swin(p, 0.848, 0.878) * (1 - swin(p, 0.9, 0.945))
-    return Math.min(1, Math.max(own, ops * 0.85, converge * 1.2))
-  }
-}
-
 /**
  * the whole miniature clinic that lives on the appliance chassis: a porcelain
  * floor field over the dark slab, cross circulation with real door openings,
@@ -215,8 +130,6 @@ export function Clinic({ quality }: { quality: Quality }) {
   )
   useEffect(() => () => coreMat.dispose(), [coreMat])
 
-  const routeIntensities = useMemo(() => ROUTES.map((r) => makeRouteIntensity(r.id)), [])
-
   useFrame(() => {
     const p = smoothedState.p
     const open = shellOpen(p)
@@ -227,10 +140,10 @@ export function Clinic({ quality }: { quality: Quality }) {
     if (warmLight.current) warmLight.current.intensity = 0.42 * open
     if (coolLight.current) coolLight.current.intensity = 0.32 * open
 
-    // the core breathes brighter as the whole clinic converges on it
-    const opsK = swin(sceneT(p, 'ops'), 0.15, 0.6)
-    const convergeK = swin(p, 0.848, 0.885) * (1 - swin(p, 0.905, 0.95))
-    coreMat.emissiveIntensity = 0.45 + Math.max(opsK * 0.9, convergeK * 1.8)
+    // the core's status light lifts quietly while the clinic settles into
+    // rhythm during operations; a restrained indicator, not a network
+    const opsK = swin(sceneT(p, 'ops'), 0.3, 0.85)
+    coreMat.emissiveIntensity = 0.45 + opsK * 0.5
   })
 
   return (
@@ -276,12 +189,9 @@ export function Clinic({ quality }: { quality: Quality }) {
         </mesh>
       ))}
 
-      {/* the chassis bus bar: information leaves the hardware here */}
+      {/* entrance threshold plate on the chassis apron */}
       <mesh position={[0, FLOOR + 0.004, 0.585]} material={mats.structure}>
         <boxGeometry args={[0.3, 0.008, 0.024]} />
-      </mesh>
-      <mesh position={[0, FLOOR + 0.0095, 0.585]} material={mats.sagePath}>
-        <boxGeometry args={[0.26, 0.0025, 0.006]} />
       </mesh>
 
       {/* perimeter walls (the entrance stays open toward the bus bar) */}
@@ -307,16 +217,6 @@ export function Clinic({ quality }: { quality: Quality }) {
       <DoorLeaf position={[0.14, -0.3]} leafZ={1} swing={0.8} />
       <DoorLeaf position={[-0.14, -0.3]} leafZ={1} swing={-0.8} />
 
-      {/* corridor ribs: the ventilation rhythm continues inside, low and quiet */}
-      {detailed &&
-        [0.36, 0.4, 0.44, 0.48, 0.52].flatMap((z) =>
-          [-0.148, 0.148].map((x) => (
-            <mesh key={`${x}${z}`} position={[x, FLOOR + 0.045, z]} material={mats.fin}>
-              <boxGeometry args={[0.006, 0.09, 0.01]} />
-            </mesh>
-          )),
-        )}
-
       {/* the central intelligence core: a ceramic instrument, not a monolith */}
       <group position={[CLINIC.core.x, 0, CLINIC.core.z]}>
         <mesh position={[0, FLOOR + 0.016, 0]} material={mats.structure}>
@@ -330,9 +230,6 @@ export function Clinic({ quality }: { quality: Quality }) {
         </mesh>
         <mesh position={[0, FLOOR + 0.325, 0]} material={coreMat}>
           <cylinderGeometry args={[0.015, 0.015, 0.01, 20]} />
-        </mesh>
-        <mesh position={[0, FLOOR + 0.004, 0]} rotation-x={-Math.PI / 2} material={coreMat}>
-          <torusGeometry args={[0.068, 0.0035, 8, 40]} />
         </mesh>
         {[FLOOR + 0.11, FLOOR + 0.21].map((y) => (
           <mesh key={y} position={[0, y, 0]} rotation-x={-Math.PI / 2} material={coreMat}>
@@ -348,19 +245,8 @@ export function Clinic({ quality }: { quality: Quality }) {
       <FloorLabel text="follow-through" position={[-0.34, -0.2]} width={0.14} />
       <FloorLabel text="scheduling" position={[-0.42, -0.075]} width={0.085} />
       <FloorLabel text="inbox" position={[0.42, -0.075]} width={0.085} />
-      <FloorLabel text="coding · billing" position={[0.13, -0.085]} width={0.085} />
-      <FloorLabel text="reports" position={[-0.13, -0.085]} width={0.085} />
-
-      {/* sage information routes across the floor */}
-      {ROUTES.map((route, i) => (
-        <InfoPath
-          key={i}
-          points={route.pts}
-          pulses={detailed ? 3 : 2}
-          speed={0.11 + (i % 3) * 0.025}
-          intensity={routeIntensities[i]}
-        />
-      ))}
+      <FloorLabel text="coding · billing" position={[0.2, -0.115]} width={0.085} />
+      <FloorLabel text="reports" position={[-0.2, -0.115]} width={0.085} />
 
       {/* the rooms */}
       <Reception detailed={detailed} />
@@ -368,6 +254,9 @@ export function Clinic({ quality }: { quality: Quality }) {
       <ReviewStation />
       <FollowThrough detailed={detailed} />
       <OpsLayer detailed={detailed} />
+
+      {/* the people who inhabit the clinic */}
+      <People />
     </group>
   )
 }

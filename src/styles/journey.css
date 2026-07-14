@@ -70,7 +70,14 @@
   }
 
   .nav {
-    padding: 13px 16px;
+    padding: 8px 16px;
+    padding-top: calc(8px + env(safe-area-inset-top, 0px));
+  }
+
+  .nav-cta {
+    /* a 44px touch target inside a single-line header */
+    padding: 12px 16px;
+    font-size: 0.8rem;
   }
 }
 
@@ -222,7 +229,8 @@
 
 @media (max-width: 900px) {
   /* mobile is its own composition: the upper two thirds belong to the 3d
-     subject; copy lives in a compact full-bleed scrim at the bottom. */
+     subject; copy lives on a near-solid full-bleed scrim at the bottom, so
+     it stays readable over any scene the camera frames. */
   .copy-block,
   .copy-block[data-side='left'],
   .copy-block[data-side='right'] {
@@ -232,13 +240,14 @@
     top: auto;
     bottom: 0;
     justify-content: flex-end;
-    padding: 44px 20px calc(16px + env(safe-area-inset-bottom, 0px));
+    padding: 40px 20px calc(18px + env(safe-area-inset-bottom, 0px));
     border-radius: 0;
     background: linear-gradient(
       to top,
-      color-mix(in srgb, var(--soft-white) 97%, transparent) 0%,
-      color-mix(in srgb, var(--soft-white) 93%, transparent) 62%,
-      color-mix(in srgb, var(--soft-white) 62%, transparent) 86%,
+      color-mix(in srgb, var(--soft-white) 99%, transparent) 0%,
+      color-mix(in srgb, var(--soft-white) 97%, transparent) 55%,
+      color-mix(in srgb, var(--soft-white) 88%, transparent) 78%,
+      color-mix(in srgb, var(--soft-white) 50%, transparent) 92%,
       transparent
     );
   }
@@ -256,28 +265,29 @@
     max-width: 46ch;
     font-size: 0.92rem;
     line-height: 1.5;
-    margin-top: 10px;
+    margin-top: 8px;
   }
 
   .copy-block .state-chip {
-    margin-bottom: 10px;
-  }
-
-  .copy-block .eyebrow {
     margin-bottom: 8px;
   }
 
+  .copy-block .eyebrow {
+    margin-bottom: 6px;
+  }
+
   .copy-actions {
-    margin-top: 16px;
+    margin-top: 14px;
     gap: 10px;
   }
 
   .copy-status {
-    margin-top: 12px;
+    margin-top: 10px;
+    line-height: 1.45;
   }
 
   .copy-actions .btn {
-    padding: 11px 18px;
+    padding: 12px 18px;
     font-size: 0.9rem;
   }
 }
@@ -354,16 +364,28 @@
 
 @media (max-width: 900px) {
   /* mobile: the bottom belongs to the copy scrim. the cue disappears and
-     the skip control docks under the nav so nothing ever collides. */
+     the skip control joins the header line as a compact text action, so the
+     nav occupies one row instead of two stacked pills. */
   .scroll-cue {
     display: none;
   }
 
   .skip-tour {
-    top: calc(58px + env(safe-area-inset-top, 0px));
-    right: 14px;
+    top: calc(8px + env(safe-area-inset-top, 0px));
+    right: 138px;
     bottom: auto;
-    padding: 7px 13px;
+    left: auto;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    backdrop-filter: none;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-color: color-mix(in srgb, var(--ink-2) 45%, transparent);
   }
 }
 

@@ -1,100 +1,79 @@
 import * as THREE from 'three'
-import { useEffect, useMemo, useRef } from 'react'
+import { useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { getMaterials, PALETTE } from '../materials'
+import { getMaterials } from '../materials'
 import { CLINIC } from '../constants'
+import { mulberry32 } from '../../lib/rng'
+import { lerp } from '../../lib/math'
 import { smoothedState, sceneT, swin } from '../../scroll/journey'
-import { InfoPath } from './InfoPath'
 import { Cabinet, WallCabinet, WallDisplay } from './props'
 
 const FLOOR = CLINIC.floorY
-const Y = FLOOR + 0.008
+const N_SHEETS = 8
+
+const dummy = new THREE.Object3D()
+
+interface SheetPose {
+  from: [number, number, number]
+  fromR: number
+  to: [number, number, number]
+  toR: number
+}
 
 /**
- * scene 6: follow-through. the approved plan physically travels in from the
- * review gate, reaches the room's junction, and branches to four stations:
- * patient summary, prescriptions, referrals, and follow-up.
+ * scene 6: follow-through. the coordinator (people layer) works the room
+ * while approved outputs become physical work: loose referral paperwork on
+ * the counter collates into the out-tray, and patient instructions stack by
+ * the summary display. no abstract routes.
  */
 export function FollowThrough({ detailed }: { detailed: boolean }) {
   const mats = getMaterials()
-  const planRef = useRef<THREE.Mesh>(null)
+  const sheetsRef = useRef<THREE.InstancedMesh>(null)
 
-  const planMat = useMemo(
-    () =>
-      new THREE.MeshStandardMaterial({
-        color: PALETTE.sage,
-        emissive: PALETTE.sage,
-        emissiveIntensity: 2.0,
-        toneMapped: false,
-      }),
-    [],
-  )
-  useEffect(() => () => planMat.dispose(), [planMat])
-
-  // the plan's route: out of the review gate, across the corridor, to the junction
-  const planCurve = useMemo(() => {
-    const path = new THREE.CurvePath<THREE.Vector3>()
-    const pts = [
-      new THREE.Vector3(0.145, Y + 0.01, -0.21),
-      new THREE.Vector3(0.0, Y + 0.01, -0.21),
-      new THREE.Vector3(-0.2, Y + 0.01, -0.21),
-      new THREE.Vector3(-0.3, Y + 0.01, -0.3),
-    ]
-    for (let i = 0; i < pts.length - 1; i++) {
-      path.add(new THREE.LineCurve3(pts[i], pts[i + 1]))
-    }
-    return path
+  const layout = useMemo<SheetPose[]>(() => {
+    const rand = mulberry32(404)
+    return Array.from({ length: N_SHEETS }, (_, i) => {
+      const toTray = i < 5
+      return toTray
+        ? {
+            // referral sheets: scattered on the cabinet top -> the out-tray
+            from: [-0.46 + rand() * 0.1, FLOOR + 0.097 + rand() * 0.003, -0.52 + rand() * 0.06],
+            fromR: rand() * 1.6 - 0.8,
+            to: [-0.525, FLOOR + 0.062 + (i % 5) * 0.004, -0.24 - 0.005 + (i % 5) * 0.006],
+            toR: Math.PI / 2,
+          }
+        : {
+            // patient instructions: loose -> a neat stack under the display
+            from: [-0.3 + rand() * 0.12, FLOOR + 0.002, -0.44 - rand() * 0.06],
+            fromR: rand() * 2 - 1,
+            to: [-0.22, FLOOR + 0.002 + (i - 5) * 0.0022, -0.5],
+            toR: 0,
+          }
+    })
   }, [])
 
-  const branchIntensity = useMemo(
-    () => () => {
-      const s = sceneT(smoothedState.p, 'after')
-      return swin(s, 0.42, 0.8)
-    },
-    [],
-  )
-
   useFrame(() => {
-    const p = smoothedState.p
-    const s = sceneT(p, 'after')
-    const travel = swin(s, 0.04, 0.42)
-    const mesh = planRef.current
-    if (mesh) {
-      mesh.visible = s > 0.01 && s < 0.999
-      const pt = planCurve.getPointAt(Math.min(0.999, Math.max(0.001, travel)))
-      mesh.position.copy(pt)
-      // once the branches take over, the plan block settles at the junction
-      const settled = swin(s, 0.42, 0.55)
-      mesh.scale.setScalar(1 - settled * 0.45)
+    const s = sceneT(smoothedState.p, 'after')
+    const t = swin(s, 0.15, 0.85)
+    const mesh = sheetsRef.current
+    if (!mesh) return
+    for (let i = 0; i < N_SHEETS; i++) {
+      const ti = Math.min(1, Math.max(0, t * 1.5 - (i / N_SHEETS) * 0.5))
+      const e = ti * ti * (3 - 2 * ti)
+      const d = layout[i]
+      // arc slightly upward mid-move so sheets read as being handled
+      const arc = Math.sin(e * Math.PI) * 0.02
+      dummy.position.set(
+        lerp(d.from[0], d.to[0], e),
+        lerp(d.from[1], d.to[1], e) + arc,
+        lerp(d.from[2], d.to[2], e),
+      )
+      dummy.rotation.set(i < 5 && e > 0.9 ? -0.35 * (e - 0.9) * 10 : 0, lerp(d.fromR, d.toR, e), 0)
+      dummy.updateMatrix()
+      mesh.setMatrixAt(i, dummy.matrix)
     }
+    mesh.instanceMatrix.needsUpdate = true
   })
-
-  const branchPoints: [number, number, number][][] = [
-    // patient summary kiosk on the back wall
-    [
-      [-0.3, Y, -0.3],
-      [-0.22, Y, -0.3],
-      [-0.22, Y, -0.5],
-    ],
-    // prescription cabinet
-    [
-      [-0.3, Y, -0.3],
-      [-0.42, Y, -0.3],
-      [-0.42, Y, -0.48],
-    ],
-    // referral tray by the west wall
-    [
-      [-0.3, Y, -0.3],
-      [-0.5, Y, -0.3],
-      [-0.5, Y, -0.24],
-    ],
-    // follow-up queue board
-    [
-      [-0.3, Y, -0.3],
-      [-0.3, Y, -0.42],
-      [-0.48, Y, -0.42],
-    ],
-  ]
 
   return (
     <group>
@@ -109,16 +88,6 @@ export function FollowThrough({ detailed }: { detailed: boolean }) {
         <mesh position={[0, 0.05, 0]} rotation-x={-0.35} material={mats.structure}>
           <boxGeometry args={[0.06, 0.004, 0.08]} />
         </mesh>
-        {[0, 1, 2].map((i) => (
-          <mesh
-            key={i}
-            position={[0, 0.058 + i * 0.004, -0.005 + i * 0.006]}
-            rotation-x={-0.35}
-            material={mats.paper}
-          >
-            <boxGeometry args={[0.05, 0.0015, 0.066]} />
-          </mesh>
-        ))}
       </group>
       {/* follow-up queue board on the west wall */}
       <WallDisplay
@@ -134,15 +103,10 @@ export function FollowThrough({ detailed }: { detailed: boolean }) {
         </mesh>
       )}
 
-      {/* the approved plan in motion */}
-      <mesh ref={planRef} material={planMat}>
-        <boxGeometry args={[0.013, 0.006, 0.013]} />
-      </mesh>
-
-      {/* four branch routes from the junction */}
-      {branchPoints.map((pts, i) => (
-        <InfoPath key={i} points={pts} pulses={2} speed={0.16 + i * 0.02} intensity={branchIntensity} />
-      ))}
+      {/* paperwork being worked: scattered -> collated */}
+      <instancedMesh ref={sheetsRef} args={[undefined, undefined, N_SHEETS]} material={mats.paper}>
+        <boxGeometry args={[0.021, 0.0014, 0.029]} />
+      </instancedMesh>
     </group>
   )
 }

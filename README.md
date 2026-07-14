@@ -39,8 +39,9 @@ into `journeyState` (src/scroll/journey.ts). everything derives from `p`:
 - `src/three/CameraRig.tsx` smooths `p`, samples the keyframed camera path
   in `src/three/paths.ts` (separate desktop and mobile paths), and damps the
   camera toward it. gsap never touches the three.js scene graph.
-- `src/three/appliance/Appliance.tsx` opens and closes the shell as a pure
-  function of `p` (`shellOpen`, `capLift`).
+- `src/three/appliance/Appliance.tsx` lifts and settles the sleeve as a pure
+  function of `p` (`shellOpen`, `capLift`). the chassis base doubles as the
+  clinic's floor slab, so the hardware literally becomes the building.
 - each room in `src/three/clinic/` maps `p` to its own scene-local progress
   (`sceneT`) and interpolates its choreography (papers resolving, the audio
   wave becoming transcript segments and then structured clusters, fragments
@@ -99,8 +100,8 @@ loop, fully reproducible). both sit behind clean component seams:
 - `src/three/appliance/Appliance.tsx` exposes the whole device as one
   component whose only inputs are `quality` and the shared progress store.
   a future `omnus-appliance.glb` can replace the internals of that file:
-  keep the two shell halves and the cap as separately named nodes so the
-  open/close choreography (`shellOpen`, `capLift`) can keep driving them.
+  keep the chassis base and the one-piece sleeve as separately named nodes
+  so the lift choreography (`shellOpen`, `capLift`) can keep driving them.
 - each room in `src/three/clinic/` is a self-contained component using the
   shared material set (`src/three/materials.ts`). swap any room's props for
   imported meshes without touching the journey, camera, or copy.

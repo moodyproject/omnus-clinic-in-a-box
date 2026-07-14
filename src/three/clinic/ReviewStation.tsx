@@ -7,7 +7,7 @@ import { mulberry32 } from '../../lib/rng'
 import { lerp } from '../../lib/math'
 import { smoothedState, sceneT, swin, win } from '../../scroll/journey'
 import { makeLabelTexture, useFontsReady } from '../textures'
-import { Chair, Desk, Monitor } from './props'
+import { Chair, Desk, DeskLamp, Monitor, Mug, Shelf } from './props'
 
 const FLOOR = CLINIC.floorY
 const DESK_TOP = FLOOR + 0.081
@@ -162,6 +162,11 @@ export function ReviewStation() {
       <Desk position={[0.34, FLOOR, -0.46]} rotationY={Math.PI} w={0.2} d={0.09} />
       <Monitor position={[0.34, DESK_TOP, -0.505]} rotationY={0} kind="draft" w={0.085} h={0.055} />
       <Chair position={[0.34, FLOOR, -0.38]} rotationY={Math.PI + 0.25} task />
+
+      {/* reference shelf, task lamp, and a mug: the physician's own room */}
+      <Shelf position={[0.525, FLOOR, -0.34]} rotationY={-Math.PI / 2} levels={3} w={0.16} />
+      <DeskLamp position={[0.425, DESK_TOP + 0.003, -0.485]} rotationY={-2.2} />
+      <Mug position={[0.265, DESK_TOP + 0.003, -0.435]} />
 
       {/* four engraved soap regions on the desk */}
       {[

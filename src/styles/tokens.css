@@ -20,6 +20,8 @@
   --text-micro: 0.72rem;
 
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  /* shared horizontal grid inset for copy columns */
+  --edge-inset: clamp(24px, 6vw, 96px);
   --radius-control: 10px;
   --radius-card: 16px;
 

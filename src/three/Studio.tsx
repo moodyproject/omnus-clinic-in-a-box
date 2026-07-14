@@ -12,21 +12,24 @@ export function Studio({ quality }: { quality: Quality }) {
       <color attach="background" args={['#f5f3ed']} />
       <fog attach="fog" args={['#f5f3ed', 7.5, 24]} />
 
-      <hemisphereLight args={['#fbfaf7', '#d8d4c8', 0.75]} />
+      <hemisphereLight args={['#fbfaf7', '#d8d4c8', 0.72]} />
       <directionalLight
-        position={[3.6, 5.4, 3.2]}
-        intensity={1.35}
+        position={[3.4, 4.6, 2.8]}
+        intensity={1.5}
         castShadow={quality.shadows}
-        shadow-mapSize={[1024, 1024]}
-        shadow-camera-left={-2.6}
-        shadow-camera-right={2.6}
-        shadow-camera-top={2.6}
-        shadow-camera-bottom={-2.6}
+        shadow-mapSize={[2048, 2048]}
+        shadow-camera-left={-2.4}
+        shadow-camera-right={2.4}
+        shadow-camera-top={2.4}
+        shadow-camera-bottom={-2.4}
         shadow-camera-near={1}
-        shadow-camera-far={14}
-        shadow-bias={-0.0003}
+        shadow-camera-far={12}
+        shadow-bias={-0.0002}
+        shadow-normalBias={0.02}
       />
-      <directionalLight position={[-4.2, 2.4, -2.4]} intensity={0.32} />
+      <directionalLight position={[-4.2, 2.4, -2.4]} intensity={0.35} />
+      {/* cool rim from behind, separating the sleeve from the backdrop */}
+      <directionalLight position={[-2.4, 1.6, -3.2]} intensity={0.22} color="#ffffff" />
 
       <Environment frames={1} resolution={128}>
         {/* a white cyc studio: soft enclosure plus three broad sources,

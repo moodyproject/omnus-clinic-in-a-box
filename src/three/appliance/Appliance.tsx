@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { RoundedBox } from '@react-three/drei'
 import { getMaterials } from '../materials'
-import { DEVICE, SHELL_TOP } from '../constants'
+import { DEVICE, SLEEVE_BASE } from '../constants'
 import { smoothedState, shellOpen, capLift } from '../../scroll/journey'
 import {
   makeContactShadowTexture,
@@ -13,27 +13,21 @@ import {
 } from '../textures'
 import type { Quality } from '../../hooks/useMediaFlags'
 
-const HALF_W = DEVICE.w / 2 - 0.006
-const HALF_X = DEVICE.w / 4 + 0.0015
+const HALF = DEVICE.w / 2
 
 /**
- * vertical ventilation channel field, one per shell half. the two fields
- * butt against the center seam so the closed device reads as a single
- * machined face interrupted by one engineered split line.
+ * a precise ventilation band: fine vertical fins inside a recessed channel.
+ * used on the sleeve's side and rear faces, never the front.
  */
-function VentField({ count, side }: { count: number; side: 1 | -1 }) {
+function VentBand({ count, width }: { count: number; width: number }) {
   const mats = getMaterials()
   const dummy = useMemo(() => new THREE.Object3D(), [])
 
-  const plateW = 0.575
-  // shift the plate toward the seam: outer margin stays, inner edge meets it
-  const offsetX = side * (0.312 - 0.012 - plateW / 2)
-
   const setLayout = (mesh: THREE.InstancedMesh | null) => {
     if (!mesh) return
-    const span = plateW - 0.05
+    const span = width - 0.06
     for (let i = 0; i < count; i++) {
-      const x = offsetX - span / 2 + (span / (count - 1)) * i
+      const x = -span / 2 + (span / (count - 1)) * i
       dummy.position.set(x, 0, 0)
       dummy.rotation.set(0, 0, 0)
       dummy.scale.set(1, 1, 1)
@@ -45,53 +39,54 @@ function VentField({ count, side }: { count: number; side: 1 | -1 }) {
 
   return (
     <group>
-      {/* dark channel plate behind the fins */}
-      <mesh position={[offsetX, 0, -0.006]} material={mats.inset}>
-        <boxGeometry args={[plateW, 1.02, 0.01]} />
+      <mesh position={[0, 0, -0.008]} material={mats.inset}>
+        <boxGeometry args={[width, 0.24, 0.012]} />
       </mesh>
       <instancedMesh ref={setLayout} args={[undefined, undefined, count]} material={mats.fin}>
-        <boxGeometry args={[0.015, 0.96, 0.014]} />
+        <boxGeometry args={[0.011, 0.2, 0.012]} />
       </instancedMesh>
+      {/* channel frame lines */}
+      {[-0.125, 0.125].map((y) => (
+        <mesh key={y} position={[0, y, -0.002]} material={mats.shellTrim}>
+          <boxGeometry args={[width, 0.006, 0.006]} />
+        </mesh>
+      ))}
     </group>
   )
 }
 
-/** recessed port field on the back face */
-function PortField() {
+/** ribs on the sleeve's underside: the vents reorganized as ceiling structure */
+function CeilingRibs({ count }: { count: number }) {
   const mats = getMaterials()
-  const slots = [-0.1, -0.045, 0.01, 0.065]
+  const dummy = useMemo(() => new THREE.Object3D(), [])
+  const setLayout = (mesh: THREE.InstancedMesh | null) => {
+    if (!mesh) return
+    const span = 1.04
+    for (let i = 0; i < count; i++) {
+      const x = -span / 2 + (span / (count - 1)) * i
+      dummy.position.set(x, 0, 0)
+      dummy.updateMatrix()
+      mesh.setMatrixAt(i, dummy.matrix)
+    }
+    mesh.instanceMatrix.needsUpdate = true
+  }
   return (
-    <group>
-      <mesh material={mats.inset}>
-        <boxGeometry args={[0.34, 0.13, 0.012]} />
-      </mesh>
-      {slots.map((x, i) => (
-        <mesh key={i} position={[x, 0.02, -0.007]} material={mats.bezel}>
-          <boxGeometry args={[0.042, 0.014, 0.006]} />
-        </mesh>
-      ))}
-      <mesh position={[0.115, 0.02, -0.007]} material={mats.bezel}>
-        <cylinderGeometry args={[0.011, 0.011, 0.006, 16]} />
-      </mesh>
-      <mesh position={[0, -0.035, -0.007]} material={mats.bezel}>
-        <boxGeometry args={[0.24, 0.01, 0.006]} />
-      </mesh>
-    </group>
+    <instancedMesh ref={setLayout} args={[undefined, undefined, count]} material={mats.fin}>
+      <boxGeometry args={[0.012, 0.024, 1.08]} />
+    </instancedMesh>
   )
 }
 
 export function Appliance({ quality }: { quality: Quality }) {
   const mats = getMaterials()
   const fontsReady = useFontsReady()
-  const leftRef = useRef<THREE.Group>(null)
-  const rightRef = useRef<THREE.Group>(null)
-  const capRef = useRef<THREE.Group>(null)
+  const sleeveRef = useRef<THREE.Group>(null)
   const ledMat = useMemo(
     () =>
       new THREE.MeshStandardMaterial({
         color: '#6f8f83',
         emissive: '#6f8f83',
-        emissiveIntensity: 1.8,
+        emissiveIntensity: 1.6,
         toneMapped: false,
       }),
     [],
@@ -114,141 +109,167 @@ export function Appliance({ quality }: { quality: Quality }) {
   useFrame(({ clock }) => {
     const p = smoothedState.p
     const open = shellOpen(p)
-    const lift = capLift(p)
+    const extra = capLift(p)
 
-    if (leftRef.current) {
-      leftRef.current.position.x = -(HALF_X + DEVICE.slide * open)
-      leftRef.current.position.z = 0.075 * open
-      leftRef.current.rotation.y = -0.26 * open
-    }
-    if (rightRef.current) {
-      rightRef.current.position.x = HALF_X + DEVICE.slide * open
-      rightRef.current.position.z = 0.075 * open
-      rightRef.current.rotation.y = 0.26 * open
-    }
-    if (capRef.current) {
-      capRef.current.position.y = SHELL_TOP + DEVICE.capH / 2 + DEVICE.lift * lift
-      capRef.current.rotation.y = 0.07 * lift
+    if (sleeveRef.current) {
+      sleeveRef.current.position.y = open * DEVICE.lift + extra * DEVICE.overheadLift
+      sleeveRef.current.rotation.y = 0.03 * open
     }
 
     // quiet breathing status light
-    ledMat.emissiveIntensity = 1.5 + Math.sin(clock.elapsedTime * 2.1) * 0.45
+    ledMat.emissiveIntensity = 1.35 + Math.sin(clock.elapsedTime * 2.1) * 0.35
   })
 
   const shadows = quality.shadows
+  const finCount = quality.tier === 'high' ? 30 : 18
 
   return (
     <group>
-      {/* base plinth stays put; the clinic floor sits on it */}
+      {/* four low feet: the device floats on a shadow gap */}
+      {[-1, 1].flatMap((sx) =>
+        [-1, 1].map((sz) => (
+          <mesh
+            key={`${sx}${sz}`}
+            position={[sx * (HALF - 0.18), DEVICE.footH / 2, sz * (HALF - 0.18)]}
+            material={mats.bezel}
+          >
+            <cylinderGeometry args={[0.045, 0.05, DEVICE.footH, 20]} />
+          </mesh>
+        )),
+      )}
+
+      {/* chassis base: this is also the clinic's floor slab */}
       <RoundedBox
-        args={[DEVICE.w - 0.08, DEVICE.plinthH, DEVICE.d - 0.08]}
-        radius={0.024}
+        args={[DEVICE.w - 0.05, DEVICE.chassisH, DEVICE.d - 0.05]}
+        radius={0.03}
         smoothness={4}
-        position={[0, DEVICE.plinthH / 2, 0]}
-        material={mats.plinth}
+        position={[0, DEVICE.footH + DEVICE.chassisH / 2, 0]}
+        material={mats.chassis}
         castShadow={shadows}
         receiveShadow={shadows}
       />
+      {/* chassis front: hairline reveal plus the sage standby light */}
+      <mesh
+        position={[-0.42, DEVICE.footH + DEVICE.chassisH - 0.028, DEVICE.d / 2 - 0.024]}
+        material={ledMat}
+      >
+        <boxGeometry args={[0.05, 0.006, 0.004]} />
+      </mesh>
+      <mesh
+        position={[0, DEVICE.footH + 0.03, DEVICE.d / 2 - 0.0245]}
+        material={mats.shellTrim}
+      >
+        <boxGeometry args={[DEVICE.w - 0.14, 0.0035, 0.002]} />
+      </mesh>
 
-      {/* left shell half */}
-      <group ref={leftRef} position={[-HALF_X, 0, 0]}>
+      {/* the one-piece anodized sleeve, lifted by the journey */}
+      <group ref={sleeveRef}>
         <RoundedBox
-          args={[HALF_W, DEVICE.shellH, DEVICE.d]}
-          radius={0.045}
-          smoothness={5}
-          position={[0, DEVICE.plinthH + DEVICE.shellH / 2, 0]}
+          args={[DEVICE.w, DEVICE.sleeveH, DEVICE.d]}
+          radius={DEVICE.radius}
+          smoothness={6}
+          position={[0, SLEEVE_BASE + DEVICE.sleeveH / 2, 0]}
           material={mats.shell}
           castShadow={shadows}
           receiveShadow={shadows}
         />
-        {/* interior lining of the panel, seen when open */}
-        <mesh position={[0, DEVICE.plinthH + DEVICE.shellH / 2, 0]} material={mats.shellInner}>
-          <boxGeometry args={[HALF_W - 0.03, DEVICE.shellH - 0.03, DEVICE.d - 0.03]} />
-        </mesh>
-        {/* vent field on the front face */}
-        <group position={[0, 0.72, DEVICE.d / 2 + 0.004]}>
-          <VentField count={quality.tier === 'high' ? 16 : 10} side={1} />
-        </group>
-        {/* horizontal machining seam */}
-        <mesh position={[0, 1.5, DEVICE.d / 2 + 0.0015]} material={mats.bezel}>
-          <boxGeometry args={[HALF_W - 0.05, 0.0035, 0.002]} />
-        </mesh>
-        {/* status light */}
-        <mesh position={[-0.13, 1.62, DEVICE.d / 2 + 0.004]} material={ledMat}>
-          <cylinderGeometry args={[0.0055, 0.0055, 0.006, 16]} />
-        </mesh>
-        {/* port field on the back */}
-        <group position={[0.02, 0.42, -DEVICE.d / 2 - 0.004]} rotation={[0, Math.PI, 0]}>
-          <PortField />
-        </group>
-      </group>
 
-      {/* right shell half */}
-      <group ref={rightRef} position={[HALF_X, 0, 0]}>
-        <RoundedBox
-          args={[HALF_W, DEVICE.shellH, DEVICE.d]}
-          radius={0.045}
-          smoothness={5}
-          position={[0, DEVICE.plinthH + DEVICE.shellH / 2, 0]}
-          material={mats.shell}
-          castShadow={shadows}
-          receiveShadow={shadows}
-        />
-        <mesh position={[0, DEVICE.plinthH + DEVICE.shellH / 2, 0]} material={mats.shellInner}>
-          <boxGeometry args={[HALF_W - 0.03, DEVICE.shellH - 0.03, DEVICE.d - 0.03]} />
+        {/* finished underside, visible while the sleeve hovers: a recessed
+            dark ceiling field with the ventilation ribs reorganized as
+            ceiling structure. protrudes slightly below the base; hidden
+            inside the seam when closed. */}
+        <mesh position={[0, SLEEVE_BASE - 0.006, 0]} material={mats.shellInner}>
+          <boxGeometry args={[DEVICE.w - 0.14, 0.014, DEVICE.d - 0.14]} />
         </mesh>
-        <group position={[0, 0.72, DEVICE.d / 2 + 0.004]}>
-          <VentField count={quality.tier === 'high' ? 16 : 10} side={-1} />
+        <group position={[0, SLEEVE_BASE - 0.024, 0]}>
+          <CeilingRibs count={quality.tier === 'high' ? 15 : 9} />
         </group>
-        <mesh position={[0, 1.5, DEVICE.d / 2 + 0.0015]} material={mats.bezel}>
-          <boxGeometry args={[HALF_W - 0.05, 0.0035, 0.002]} />
-        </mesh>
-        {/* small dark status display */}
-        <group position={[0.06, 1.62, DEVICE.d / 2 + 0.003]}>
-          <mesh material={mats.bezel}>
-            <boxGeometry args={[0.27, 0.075, 0.005]} />
-          </mesh>
-          <mesh position={[0, 0, 0.0031]}>
-            <planeGeometry args={[0.25, 0.0625]} />
-            <meshBasicMaterial map={statusTexture} toneMapped={false} />
-          </mesh>
-        </group>
-        {/* machined lettering */}
-        <mesh position={[0.16, 0.135, DEVICE.d / 2 + 0.0022]}>
-          <planeGeometry args={[0.15, 0.047]} />
-          <meshBasicMaterial map={engraving} transparent depthWrite={false} />
-        </mesh>
-      </group>
 
-      {/* lifted top cap */}
-      <group ref={capRef} position={[0, SHELL_TOP + DEVICE.capH / 2, 0]}>
-        <RoundedBox
-          args={[DEVICE.w, DEVICE.capH, DEVICE.d]}
-          radius={0.045}
-          smoothness={5}
-          material={mats.shell}
-          castShadow={shadows}
-        />
-        {/* dark underside with locating pins, visible while lifted */}
-        <mesh position={[0, -DEVICE.capH / 2, 0]} material={mats.inset}>
-          <boxGeometry args={[DEVICE.w - 0.14, 0.012, DEVICE.d - 0.14]} />
-        </mesh>
-        {[-1, 1].flatMap((sx) =>
-          [-1, 1].map((sz) => (
-            <mesh
-              key={`${sx}${sz}`}
-              position={[sx * 0.5, -DEVICE.capH / 2 - 0.02, sz * 0.5]}
-              material={mats.structure}
-            >
-              <cylinderGeometry args={[0.011, 0.011, 0.045, 10]} />
+        {/* front face: clean fascia with restrained instrumentation */}
+        <group position={[0, 0, DEVICE.d / 2 + 0.004]}>
+          {/* recessed status display, upper right */}
+          <group position={[0.34, SLEEVE_BASE + DEVICE.sleeveH - 0.16, 0]}>
+            <mesh material={mats.inset}>
+              <boxGeometry args={[0.3, 0.084, 0.008]} />
             </mesh>
-          )),
-        )}
+            <mesh position={[0, 0, 0.0045]} material={mats.bezel}>
+              <boxGeometry args={[0.284, 0.07, 0.004]} />
+            </mesh>
+            <mesh position={[0, 0, 0.007]}>
+              <planeGeometry args={[0.27, 0.0605]} />
+              <meshBasicMaterial map={statusTexture} toneMapped={false} />
+            </mesh>
+          </group>
+          {/* status light, upper left */}
+          <mesh
+            position={[-0.5, SLEEVE_BASE + DEVICE.sleeveH - 0.16, 0.002]}
+            rotation-x={Math.PI / 2}
+            material={ledMat}
+          >
+            <cylinderGeometry args={[0.007, 0.007, 0.005, 18]} />
+          </mesh>
+          <mesh
+            position={[-0.5, SLEEVE_BASE + DEVICE.sleeveH - 0.16, 0.001]}
+            rotation-x={Math.PI / 2}
+            material={mats.shellTrim}
+          >
+            <cylinderGeometry args={[0.013, 0.013, 0.003, 18]} />
+          </mesh>
+          {/* machined horizontal reveal across the fascia */}
+          <mesh position={[0, SLEEVE_BASE + DEVICE.sleeveH - 0.24, 0]} material={mats.shellTrim}>
+            <boxGeometry args={[DEVICE.w - 0.1, 0.004, 0.003]} />
+          </mesh>
+          {/* engraved wordmark, lower right */}
+          <mesh position={[0.44, SLEEVE_BASE + 0.085, 0.001]}>
+            <planeGeometry args={[0.17, 0.053]} />
+            <meshBasicMaterial map={engraving} transparent depthWrite={false} />
+          </mesh>
+        </group>
+
+        {/* precise ventilation bands on the sides and rear only */}
+        <group
+          position={[DEVICE.w / 2 + 0.004, SLEEVE_BASE + 0.27, 0]}
+          rotation-y={Math.PI / 2}
+        >
+          <VentBand count={finCount} width={0.96} />
+        </group>
+        <group
+          position={[-(DEVICE.w / 2 + 0.004), SLEEVE_BASE + 0.27, 0]}
+          rotation-y={-Math.PI / 2}
+        >
+          <VentBand count={finCount} width={0.96} />
+        </group>
+        <group position={[0, SLEEVE_BASE + 0.27, -(DEVICE.d / 2 + 0.004)]} rotation-y={Math.PI}>
+          <VentBand count={finCount} width={0.96} />
+        </group>
+
+        {/* recessed port field low on the rear face */}
+        <group position={[0.3, SLEEVE_BASE + 0.09, -(DEVICE.d / 2 + 0.004)]} rotation-y={Math.PI}>
+          <mesh material={mats.inset}>
+            <boxGeometry args={[0.36, 0.07, 0.012]} />
+          </mesh>
+          {[-0.13, -0.065, 0, 0.065].map((x) => (
+            <mesh key={x} position={[x, 0, -0.007]} material={mats.bezel}>
+              <boxGeometry args={[0.044, 0.015, 0.006]} />
+            </mesh>
+          ))}
+          <mesh position={[0.135, 0, -0.007]} material={mats.bezel}>
+            <cylinderGeometry args={[0.012, 0.012, 0.006, 16]} />
+          </mesh>
+        </group>
+
+        {/* recessed top vent slot near the rear edge */}
+        <mesh
+          position={[0, SLEEVE_BASE + DEVICE.sleeveH + 0.0015, -(DEVICE.d / 2 - 0.13)]}
+          material={mats.inset}
+        >
+          <boxGeometry args={[0.72, 0.004, 0.035]} />
+        </mesh>
       </group>
 
       {/* soft contact shadow under the appliance */}
       <mesh position={[0, 0.0015, 0]} rotation-x={-Math.PI / 2}>
-        <planeGeometry args={[3.2, 3.2]} />
+        <planeGeometry args={[3.0, 3.0]} />
         <meshBasicMaterial map={contactShadow} transparent depthWrite={false} />
       </mesh>
     </group>

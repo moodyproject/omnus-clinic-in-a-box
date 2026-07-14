@@ -8,9 +8,10 @@ import { scenes, actions, misc } from '../content/copy'
 
 export function DeviceIllustration() {
   return (
-    <div className="device-illustration" role="img" aria-label="the omnus appliance: a compact graphite box with fine ventilation channels, a small status display, and a sage status light">
+    <div className="device-illustration" role="img" aria-label="the omnus appliance: a compact satin gunmetal box on a dark chassis, with a fine ventilation band, a small status display, and a sage status light">
       <span className="led" />
       <span className="plate">omnus os</span>
+      <span className="vents" />
     </div>
   )
 }

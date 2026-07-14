@@ -5,7 +5,7 @@ import { getMaterials, PALETTE } from '../materials'
 import { CLINIC } from '../constants'
 import { smoothedState, sceneT, swin } from '../../scroll/journey'
 import { InfoPath } from './InfoPath'
-import { Cabinet, WallDisplay } from './props'
+import { Cabinet, WallCabinet, WallDisplay } from './props'
 
 const FLOOR = CLINIC.floorY
 const Y = FLOOR + 0.008
@@ -101,6 +101,9 @@ export function FollowThrough({ detailed }: { detailed: boolean }) {
       {/* stations built into the room */}
       <WallDisplay position={[-0.22, 0.27, -0.545]} rotationY={0} kind="kiosk" w={0.07} h={0.09} />
       <Cabinet position={[-0.42, FLOOR, -0.5]} rotationY={0} openDrawer />
+      {detailed && (
+        <WallCabinet position={[-0.32, FLOOR + 0.21, -0.55]} rotationY={0} w={0.16} />
+      )}
       {/* referral out-tray, angled */}
       <group position={[-0.525, FLOOR, -0.24]} rotation-y={Math.PI / 2}>
         <mesh position={[0, 0.05, 0]} rotation-x={-0.35} material={mats.structure}>

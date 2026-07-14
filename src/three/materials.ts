@@ -10,31 +10,35 @@ export const PALETTE = {
 } as const
 
 export interface Materials {
-  /** anodized outer enclosure */
+  /** satin anodized gunmetal outer sleeve */
   shell: THREE.MeshStandardMaterial
-  /** interior faces of the opened panels */
+  /** darker machined trim on the sleeve (chamfers, reveals) */
+  shellTrim: THREE.MeshStandardMaterial
+  /** interior faces of the lifted sleeve */
   shellInner: THREE.MeshStandardMaterial
-  /** recessed front field behind the ventilation fins */
+  /** recessed fields behind ventilation and ports */
   inset: THREE.MeshStandardMaterial
-  /** base plinth, slightly darker than the shell */
-  plinth: THREE.MeshStandardMaterial
+  /** chassis base: darker than the sleeve, becomes the clinic slab */
+  chassis: THREE.MeshStandardMaterial
   /** ventilation fins and machined ribs */
   fin: THREE.MeshStandardMaterial
-  /** clinic floor slab */
+  /** clinic floor field */
   floor: THREE.MeshStandardMaterial
   /** corridor inlay */
   corridor: THREE.MeshStandardMaterial
+  /** warmer room inlays (rugs, mats) */
+  rug: THREE.MeshStandardMaterial
   /** interior partition walls */
   wall: THREE.MeshStandardMaterial
-  /** graphite structural columns, rails, frames */
+  /** graphite structural trims, rails, frames */
   structure: THREE.MeshStandardMaterial
-  /** machined aluminum of the compute deck above the clinic */
+  /** machined aluminum shelving and racks */
   deck: THREE.MeshStandardMaterial
   /** dark work surfaces */
   deskTop: THREE.MeshStandardMaterial
   /** porcelain furniture bodies */
   furniture: THREE.MeshStandardMaterial
-  /** loose documents */
+  /** loose documents and lab coats */
   paper: THREE.MeshStandardMaterial
   /** dark bezel around screens */
   bezel: THREE.MeshStandardMaterial
@@ -55,14 +59,16 @@ export function getMaterials(): Materials {
   const sageColor = new THREE.Color(PALETTE.sage)
 
   const mats: Materials = {
-    shell: std({ color: '#36393d', metalness: 0.88, roughness: 0.28, envMapIntensity: 1.5 }),
-    shellInner: std({ color: '#2e3134', metalness: 0, roughness: 1 }),
-    inset: std({ color: '#1d2023', metalness: 0.65, roughness: 0.5, envMapIntensity: 1.1 }),
-    plinth: std({ color: '#232629', metalness: 0.78, roughness: 0.4, envMapIntensity: 1.2 }),
-    fin: std({ color: '#3a3e42', metalness: 0.82, roughness: 0.38, envMapIntensity: 1.3 }),
-    floor: std({ color: '#eae7df', roughness: 0.92 }),
-    corridor: std({ color: '#f4f2ec', roughness: 0.88 }),
-    wall: std({ color: '#fbfaf7', roughness: 0.95 }),
+    shell: std({ color: '#4a4e54', metalness: 0.85, roughness: 0.34, envMapIntensity: 1.35 }),
+    shellTrim: std({ color: '#33363b', metalness: 0.8, roughness: 0.42, envMapIntensity: 1.1 }),
+    shellInner: std({ color: '#33363a', metalness: 0, roughness: 0.95 }),
+    inset: std({ color: '#232629', metalness: 0.6, roughness: 0.5, envMapIntensity: 1.0 }),
+    chassis: std({ color: '#2b2e32', metalness: 0.75, roughness: 0.38, envMapIntensity: 1.15 }),
+    fin: std({ color: '#5a5f66', metalness: 0.82, roughness: 0.36, envMapIntensity: 1.3 }),
+    floor: std({ color: '#e7e3d9', roughness: 0.92 }),
+    corridor: std({ color: '#f3f1eb', roughness: 0.88 }),
+    rug: std({ color: '#ddd8ca', roughness: 0.96 }),
+    wall: std({ color: '#fcfbf8', roughness: 0.95 }),
     structure: std({ color: '#26282c', metalness: 0.65, roughness: 0.5 }),
     deck: std({ color: '#3c4045', metalness: 0.75, roughness: 0.32, envMapIntensity: 1.5 }),
     deskTop: std({ color: '#2b2e32', metalness: 0.35, roughness: 0.5 }),

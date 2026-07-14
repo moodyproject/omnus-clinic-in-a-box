@@ -6,7 +6,18 @@ import { CLINIC } from '../constants'
 import { lerp } from '../../lib/math'
 import { smoothedState, sceneT, swin, win } from '../../scroll/journey'
 import { makeLabelTexture, useFontsReady } from '../textures'
-import { Cabinet, Chair, Desk, ExamTable, Monitor, WallDisplay } from './props'
+import {
+  Cabinet,
+  Chair,
+  CoatRail,
+  Counter,
+  Desk,
+  ExamTable,
+  Monitor,
+  Mug,
+  WallCabinet,
+  WallDisplay,
+} from './props'
 
 const FLOOR = CLINIC.floorY
 
@@ -134,6 +145,12 @@ export function ExamRoom({ detailed }: { detailed: boolean }) {
       {/* exam surface and supply cart */}
       <ExamTable position={[0.45, FLOOR, 0.455]} />
       {detailed && <Cabinet position={[0.34, FLOOR, 0.52]} rotationY={Math.PI} openDrawer />}
+
+      {/* built-in sink counter with upper cabinets along the south wall */}
+      <Counter position={[0.42, FLOOR, 0.168]} rotationY={0} w={0.2} basin />
+      {detailed && <WallCabinet position={[0.42, FLOOR + 0.21, 0.152]} rotationY={0} w={0.18} />}
+      {detailed && <CoatRail position={[0.152, FLOOR, 0.38]} rotationY={Math.PI / 2} coats={1} />}
+      <Mug position={[0.465, FLOOR + 0.084, 0.245]} />
 
       {/* wall display carrying the live visit */}
       <WallDisplay position={[0.547, 0.3, 0.33]} rotationY={-Math.PI / 2} kind="visit" />

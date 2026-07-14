@@ -9,7 +9,7 @@
   position: sticky;
   top: 0;
   height: 100vh;
-  height: 100svh;
+  height: 100dvh;
   overflow: hidden;
 }
 
@@ -61,11 +61,23 @@
 .nav-cta {
   font-size: var(--text-small);
   padding: 9px 16px;
+  flex: none;
 }
 
 @media (max-width: 720px) {
   .nav-links .nav-link {
     display: none;
+  }
+
+  .nav {
+    padding: 13px 16px;
+  }
+}
+
+@media (max-width: 900px) {
+  .copy-actions .btn {
+    padding: 11px 16px;
+    font-size: 0.88rem;
   }
 }
 
@@ -99,30 +111,60 @@
   pointer-events: auto;
 }
 
-/* interior scenes: a quiet porcelain scrim keeps copy readable over the model.
-   the block itself stays a full-height flex column (gsap owns its transform);
-   the card treatment lives on the inner wrapper. */
+/* interior scenes: an editorial edge scrim rather than a floating card.
+   the gradient is anchored to the frame edge and feathers into the scene,
+   so the architecture stays dominant. blocks keep their flex centering
+   (gsap owns the element transform). */
 @media (min-width: 901px) {
   .copy-block[data-scrim] {
-    width: min(37vw, 480px);
+    width: min(30vw, 400px);
   }
 
   .copy-block[data-scrim] .copy-inner {
-    padding: 30px 34px;
-    border-radius: var(--radius-card);
-    border: 1px solid var(--hairline-soft);
-    background: color-mix(in srgb, var(--soft-white) 76%, transparent);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
+    position: relative;
+    padding: 30px 0;
+  }
+
+  .copy-block[data-scrim] .copy-inner::before {
+    content: '';
+    display: block;
+    width: 26px;
+    height: 2px;
+    background: var(--sage);
+    margin-bottom: 16px;
+  }
+
+  .copy-block[data-scrim][data-side='left'] .copy-inner {
+    padding-right: 40px;
+    padding-left: var(--edge-inset);
+    margin-left: calc(-1 * var(--edge-inset));
+    background: linear-gradient(
+      to right,
+      color-mix(in srgb, var(--soft-white) 96%, transparent) 45%,
+      color-mix(in srgb, var(--soft-white) 82%, transparent) 78%,
+      transparent
+    );
+  }
+
+  .copy-block[data-scrim][data-side='right'] .copy-inner {
+    padding-left: 40px;
+    padding-right: var(--edge-inset);
+    margin-right: calc(-1 * var(--edge-inset));
+    background: linear-gradient(
+      to left,
+      color-mix(in srgb, var(--soft-white) 96%, transparent) 45%,
+      color-mix(in srgb, var(--soft-white) 82%, transparent) 78%,
+      transparent
+    );
   }
 }
 
 .copy-block[data-side='left'] {
-  left: clamp(20px, 5.5vw, 84px);
+  left: var(--edge-inset);
 }
 
 .copy-block[data-side='right'] {
-  right: clamp(20px, 5.5vw, 84px);
+  right: var(--edge-inset);
 }
 
 .copy-heading {
@@ -179,32 +221,59 @@
 }
 
 @media (max-width: 900px) {
+  /* mobile is its own composition: the upper two thirds belong to the 3d
+     subject; copy lives in a compact full-bleed scrim at the bottom. */
   .copy-block,
   .copy-block[data-side='left'],
   .copy-block[data-side='right'] {
-    left: 5vw;
-    right: 5vw;
+    left: 0;
+    right: 0;
     width: auto;
     top: auto;
-    bottom: max(7vh, 44px);
+    bottom: 0;
     justify-content: flex-end;
-    padding: 18px 18px 4px;
-    border-radius: var(--radius-card);
+    padding: 44px 20px calc(16px + env(safe-area-inset-bottom, 0px));
+    border-radius: 0;
     background: linear-gradient(
       to top,
-      color-mix(in srgb, var(--soft-white) 92%, transparent) 65%,
-      color-mix(in srgb, var(--soft-white) 55%, transparent) 88%,
+      color-mix(in srgb, var(--soft-white) 97%, transparent) 0%,
+      color-mix(in srgb, var(--soft-white) 93%, transparent) 62%,
+      color-mix(in srgb, var(--soft-white) 62%, transparent) 86%,
       transparent
     );
   }
 
+  .copy-block h1.copy-heading {
+    font-size: clamp(1.7rem, 6.4vw, 2.2rem);
+    line-height: 1.1;
+  }
+
+  .copy-block h2.copy-heading {
+    font-size: clamp(1.3rem, 5.4vw, 1.7rem);
+  }
+
   .copy-body {
-    max-width: none;
-    font-size: 0.95rem;
+    max-width: 46ch;
+    font-size: 0.92rem;
+    line-height: 1.5;
+    margin-top: 10px;
+  }
+
+  .copy-block .state-chip {
+    margin-bottom: 10px;
+  }
+
+  .copy-block .eyebrow {
+    margin-bottom: 8px;
   }
 
   .copy-actions {
-    margin-top: 20px;
+    margin-top: 16px;
+    gap: 10px;
+  }
+
+  .copy-status {
+    margin-top: 12px;
   }
 
   .copy-actions .btn {
@@ -284,10 +353,17 @@
 }
 
 @media (max-width: 900px) {
+  /* mobile: the bottom belongs to the copy scrim. the cue disappears and
+     the skip control docks under the nav so nothing ever collides. */
   .scroll-cue {
-    left: 24px;
-    transform: none;
-    align-items: flex-start;
+    display: none;
+  }
+
+  .skip-tour {
+    top: calc(58px + env(safe-area-inset-top, 0px));
+    right: 14px;
+    bottom: auto;
+    padding: 7px 13px;
   }
 }
 
@@ -453,49 +529,45 @@
 /* ---------- css appliance illustration (fallback) ---------- */
 
 .device-illustration {
-  width: min(300px, 60vw);
-  aspect-ratio: 0.66;
+  /* compact desktop appliance: satin sleeve on a dark chassis */
+  width: min(380px, 78vw);
+  aspect-ratio: 1.42;
   margin: 0 auto;
   position: relative;
-  border-radius: 26px;
-  background: linear-gradient(160deg, #2b2e32 0%, #1a1c1f 55%, #212428 100%);
+  border-radius: 24px;
+  background: linear-gradient(165deg, #565b61 0%, #43474d 30%, #3a3e43 70%, #4a4e54 100%);
   box-shadow:
-    inset 1px 1px 0 rgba(251, 250, 247, 0.09),
-    0 40px 70px -30px rgba(17, 19, 21, 0.5);
+    inset 1px 1px 0 rgba(251, 250, 247, 0.14),
+    0 34px 60px -26px rgba(17, 19, 21, 0.55);
 }
 
 .device-illustration::before {
-  /* ventilation field */
+  /* chassis base with its shadow gap */
   content: '';
   position: absolute;
-  left: 14%;
-  right: 14%;
-  top: 34%;
-  bottom: 12%;
-  border-radius: 10px;
-  background: repeating-linear-gradient(
-    90deg,
-    rgba(251, 250, 247, 0.05) 0 2px,
-    transparent 2px 9px
-  );
-  border: 1px solid rgba(251, 250, 247, 0.06);
+  left: 3%;
+  right: 3%;
+  bottom: -9%;
+  height: 12%;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #2b2e32, #202327);
 }
 
 .device-illustration::after {
-  /* seam */
+  /* machined reveal across the fascia */
   content: '';
   position: absolute;
-  top: 4%;
-  bottom: 4%;
-  left: 50%;
-  width: 1px;
-  background: rgba(17, 19, 21, 0.85);
+  top: 26%;
+  left: 4%;
+  right: 4%;
+  height: 1px;
+  background: rgba(17, 19, 21, 0.55);
 }
 
 .device-illustration .led {
   position: absolute;
-  left: 16%;
-  top: 22%;
+  left: 8%;
+  top: 14%;
   width: 7px;
   height: 7px;
   border-radius: 50%;
@@ -505,16 +577,33 @@
 
 .device-illustration .plate {
   position: absolute;
-  right: 15%;
-  top: 20%;
-  width: 34%;
-  height: 7%;
+  right: 9%;
+  top: 10%;
+  width: 32%;
+  height: 12%;
   border-radius: 6px;
-  background: #0d0f11;
+  background: #101214;
   display: flex;
   align-items: center;
   justify-content: center;
   color: rgba(251, 250, 247, 0.55);
   font-size: 0.6rem;
   letter-spacing: 0.18em;
+}
+
+.device-illustration .vents {
+  /* precise ventilation band, lower right */
+  position: absolute;
+  right: 6%;
+  bottom: 12%;
+  width: 34%;
+  height: 26%;
+  border-radius: 6px;
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(17, 19, 21, 0.5) 0 2px,
+    rgba(251, 250, 247, 0.05) 2px 4px,
+    transparent 4px 8px
+  );
+  border: 1px solid rgba(17, 19, 21, 0.4);
 }

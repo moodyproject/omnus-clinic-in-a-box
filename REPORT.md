@@ -107,3 +107,61 @@ story as accessible steps.
   overhead operations, closing, final reveal, mobile hero/exam/overhead,
   and the static fallback, all captured from the production build
 - `scripts/capture.mjs`: reproducible screenshot rig
+
+---
+
+# visual correction pass
+
+date: 2026-07-14
+
+an external review scored the launch build ~6/10 visually. this pass kept
+the architecture and rebuilt the visual layer.
+
+## what changed
+
+1. hardware redesigned: the tall center-split tower became a compact
+   square-footprint appliance (1.36 wide, ~0.95 tall) in satin anodized
+   gunmetal. one-piece sleeve on a dark chassis with low feet, side and
+   rear ventilation bands with framed fin channels, a clean front fascia
+   (recessed status display, machined reveal, engraved wordmark, sage
+   standby light), and a rear port field. no center split remains.
+2. transformation made physically continuous: the chassis base is the
+   clinic's floor slab; the sleeve lifts off like a precision cloche and
+   hovers with its underside finished as rib structure (the vent language
+   reorganized as ceiling); information traces emerge from a chassis bus
+   bar at the entrance and continue across the floor; the ceramic core is
+   the internal instrument at the center.
+3. clinic upgraded: baseboards and slim wall caps, ajar door leaves at all
+   four rooms, per-room flooring (rug, mats, exam demarcation), built-in
+   counters and wall cabinets, sink basin, reference shelving with binders,
+   task lamp, mugs, hanging lab coats, and faux contact shadows under
+   furniture.
+4. overlay cards replaced with an editorial edge-scrim system (sage rule,
+   frame-anchored gradient, no borders or blur cards). hero and finale stay
+   unboxed.
+5. mobile recomposed: subject reserved in the upper two thirds, compact
+   full-bleed bottom scrims, the skip control docked under the nav, the
+   scroll cue removed on small screens, dvh viewport units, and safe-area
+   padding. verified at 375x812 and 390x844.
+6. lighting: 2048px soft shadows with normal bias, added rim light, brighter
+   key, stronger material separation (floor vs walls vs furniture vs shell).
+
+## verification
+
+- eslint, tsc, `npm run build`, and `npm run build:pages`: all clean.
+- 18 screenshots captured from the production build (desktop 1440x900,
+  mobile 375x812 and 390x844), visually inspected across two fix rounds.
+- rapid forward/reverse progress sweep (0 to 1 to 0 with intermediate
+  jumps): no console errors, deterministic state.
+- demo form (dev): validation, pending, local-mode success, escape. waitlist
+  form (production build): honest unconfigured message, no fake success.
+- static fallback re-drawn to match the new industrial design.
+
+## remaining limitations that genuinely need a sculpted glb
+
+- true filleted panel-gap shadow lines, chamfer highlights, and machined
+  screw or port details on the appliance (procedural rounded boxes cannot
+  carry sub-millimeter tooling marks).
+- soft fabric silhouettes (lab coats read as folded panels at close range).
+- baked ambient occlusion inside the rooms; the faux shadow ovals
+  approximate it but corners stay slightly airy.

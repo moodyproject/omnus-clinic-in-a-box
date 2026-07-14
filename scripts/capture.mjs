@@ -14,6 +14,7 @@ const out = process.argv[3] ?? 'screenshots'
 
 const DESKTOP = { width: 1440, height: 900, deviceScaleFactor: 1 }
 const MOBILE = { width: 375, height: 812, deviceScaleFactor: 2, isMobile: true, hasTouch: true }
+const MOBILE_390 = { width: 390, height: 844, deviceScaleFactor: 2, isMobile: true, hasTouch: true }
 
 const shots = [
   ['01-hero', DESKTOP, '/'],
@@ -30,6 +31,10 @@ const shots = [
   ['12-mobile-exam', MOBILE, '/?pose=0.45'],
   ['13-mobile-overhead', MOBILE, '/?pose=0.85'],
   ['14-static-fallback', DESKTOP, '/?static=1'],
+  ['15-mobile-opening', MOBILE, '/?pose=0.165'],
+  ['16-mobile-final', MOBILE, '/?pose=1'],
+  ['17-mobile390-hero', MOBILE_390, '/'],
+  ['18-mobile390-exam', MOBILE_390, '/?pose=0.45'],
 ]
 
 fs.mkdirSync(out, { recursive: true })

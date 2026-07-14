@@ -291,6 +291,14 @@ export function makeLabelTexture(
   return tex
 }
 
+let sharedShadow: THREE.CanvasTexture | null = null
+
+/** shared soft shadow blob for furniture feet: cheap ambient occlusion */
+export function getSharedShadowTexture(): THREE.CanvasTexture {
+  if (!sharedShadow) sharedShadow = makeContactShadowTexture()
+  return sharedShadow
+}
+
 /** soft radial contact shadow blob, cheaper and steadier than a depth pass */
 export function makeContactShadowTexture(): THREE.CanvasTexture {
   const { canvas, ctx } = makeCanvas(256, 256)

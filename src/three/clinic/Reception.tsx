@@ -6,7 +6,7 @@ import { CLINIC } from '../constants'
 import { mulberry32 } from '../../lib/rng'
 import { lerp } from '../../lib/math'
 import { smoothedState, sceneT, swin } from '../../scroll/journey'
-import { Chair, Desk, Kiosk, Monitor, SideTable } from './props'
+import { Chair, CoatRail, Counter, Desk, Kiosk, Monitor, SideTable } from './props'
 
 const FLOOR = CLINIC.floorY
 const DESK_TOP = FLOOR + 0.081
@@ -137,6 +137,10 @@ export function Reception({ detailed }: { detailed: boolean }) {
 
       {/* self check-in kiosk near the entrance */}
       <Kiosk position={[-0.17, FLOOR, 0.51]} rotationY={0.9} />
+
+      {/* built-in back counter and staff coats: the room is lived in */}
+      <Counter position={[-0.34, FLOOR, 0.52]} rotationY={Math.PI} w={0.32} />
+      {detailed && <CoatRail position={[-0.2, FLOOR, 0.147]} rotationY={0} />}
 
       {/* intake forms and referral documents, scattered then resolved */}
       <instancedMesh ref={papersRef} args={[undefined, undefined, N_PAPERS]} material={mats.paper}>

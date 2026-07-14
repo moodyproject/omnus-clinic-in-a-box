@@ -62,14 +62,12 @@ export const swin = (p: number, a: number, b: number) => {
 /** progress inside a scene, 0..1 */
 export const sceneT = (p: number, id: SceneId) => win(p, SCENES[id].a, SCENES[id].b)
 
-/** shell opening factor: 0 closed, 1 fully open. pure function of progress. */
+/** sleeve opening factor: 0 closed, 1 fully lifted. pure function of progress. */
 export const shellOpen = (p: number) => swin(p, 0.115, 0.235) * (1 - swin(p, 0.9, 0.965))
 
-/** top cap lift factor, with extra clearance during the overhead scene */
+/** extra sleeve clearance during the overhead scene and the exit */
 export const capLift = (p: number) => {
-  const base = swin(p, 0.15, 0.27) * (1 - swin(p, 0.88, 0.95))
-  const overhead = 0.5 * swin(p, 0.72, 0.79) * (1 - swin(p, 0.86, 0.92))
-  return clamp01(base + overhead)
+  return clamp01(swin(p, 0.72, 0.79) * (1 - swin(p, 0.87, 0.93)))
 }
 
 /** how deep inside the appliance the camera is: 0 outside, 1 inside */

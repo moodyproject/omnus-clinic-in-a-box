@@ -1,0 +1,27 @@
+:root {
+  /* palette: the only colors used anywhere on the site */
+  --graphite: #111315;
+  --porcelain: #f2f0ea;
+  --soft-white: #fbfaf7;
+  --sage: #6f8f83;
+  --ink-2: #5f6461;
+
+  --hairline: rgba(17, 19, 21, 0.14);
+  --hairline-soft: rgba(17, 19, 21, 0.08);
+  --hairline-strong: rgba(17, 19, 21, 0.3);
+
+  --font-sans: 'Geist Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  /* type scale */
+  --text-display: clamp(2.35rem, 1.2rem + 3.6vw, 4rem);
+  --text-h2: clamp(1.55rem, 1rem + 1.7vw, 2.35rem);
+  --text-body: clamp(0.98rem, 0.92rem + 0.2vw, 1.08rem);
+  --text-small: 0.84rem;
+  --text-micro: 0.72rem;
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --radius-control: 10px;
+  --radius-card: 16px;
+
+  --shadow-card: 0 24px 60px -24px rgba(17, 19, 21, 0.25), 0 2px 8px rgba(17, 19, 21, 0.06);
+}

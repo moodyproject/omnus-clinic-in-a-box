@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="omnus is the clinic operating system for independent physicians. everything your clinic needs, inside one box." />
+    <meta name="theme-color" content="#f2f0ea" />
+    <title>omnus · the clinic operating system</title>
+    <style>
+      #boot {
+        position: fixed;
+        inset: 0;
+        z-index: 200;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 18px;
+        background: #f2f0ea;
+        transition: opacity 0.5s ease;
+      }
+      #boot.boot-done {
+        opacity: 0;
+        pointer-events: none;
+      }
+      .boot-mark {
+        font-family: 'Geist Variable', ui-sans-serif, system-ui, -apple-system, sans-serif;
+        font-size: 17px;
+        font-weight: 560;
+        letter-spacing: 0.01em;
+        color: #111315;
+        animation: boot-pulse 1.6s ease-in-out infinite;
+      }
+      .boot-line {
+        width: 72px;
+        height: 1px;
+        background: rgba(17, 19, 21, 0.14);
+        position: relative;
+        overflow: hidden;
+      }
+      .boot-line::after {
+        content: '';
+        position: absolute;
+        left: -40%;
+        top: 0;
+        width: 40%;
+        height: 100%;
+        background: #6f8f83;
+        animation: boot-scan 1.4s ease-in-out infinite;
+      }
+      @keyframes boot-pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.55; }
+      }
+      @keyframes boot-scan {
+        0% { left: -40%; }
+        100% { left: 100%; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .boot-mark { animation: none; }
+        .boot-line::after { animation: none; left: 30%; }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="boot" aria-hidden="true">
+      <span class="boot-mark">omnus</span>
+      <span class="boot-line"></span>
+    </div>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

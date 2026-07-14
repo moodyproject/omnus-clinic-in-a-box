@@ -1,11 +1,8 @@
 import * as THREE from 'three'
-import { useMemo, useRef } from 'react'
-import { useFrame } from '@react-three/fiber'
+import { useEffect, useMemo, useRef } from 'react'
 import { getMaterials } from '../materials'
 import { CLINIC } from '../constants'
 import { mulberry32 } from '../../lib/rng'
-import { lerp } from '../../lib/math'
-import { smoothedState, sceneT, swin } from '../../scroll/journey'
 import { Chair, CoatRail, Counter, Desk, Kiosk, Monitor, SideTable } from './props'
 
 const FLOOR = CLINIC.floorY
@@ -23,8 +20,8 @@ const dummy = new THREE.Object3D()
 
 /**
  * scene 3: reception and intake. scattered intake forms, referral documents
- * and calendar blocks resolve into one organized patient thread as the
- * visitor scrolls through.
+ * and calendar blocks sit in one organized patient thread. the architecture
+ * stays physically fixed; the people carry the action.
  */
 export function Reception({ detailed }: { detailed: boolean }) {
   const mats = getMaterials()
@@ -67,11 +64,7 @@ export function Reception({ detailed }: { detailed: boolean }) {
     return { papers, blocks }
   }, [])
 
-  useFrame(() => {
-    const p = smoothedState.p
-    const s = sceneT(p, 'before')
-    const t = swin(s, 0.12, 0.88)
-
+  useEffect(() => {
     const apply = (
       mesh: THREE.InstancedMesh | null,
       items: { from: Pose; to: Pose }[],
@@ -79,20 +72,9 @@ export function Reception({ detailed }: { detailed: boolean }) {
       if (!mesh) return
       const n = items.length
       for (let i = 0; i < n; i++) {
-        // stagger so the room tidies itself piece by piece
-        const ti = Math.min(1, Math.max(0, t * 1.6 - (i / n) * 0.6))
-        const e = ti * ti * (3 - 2 * ti)
-        const { from, to } = items[i]
-        dummy.position.set(
-          lerp(from.p[0], to.p[0], e),
-          lerp(from.p[1], to.p[1], e),
-          lerp(from.p[2], to.p[2], e),
-        )
-        dummy.rotation.set(
-          lerp(from.r[0], to.r[0], e),
-          lerp(from.r[1], to.r[1], e),
-          lerp(from.r[2], to.r[2], e),
-        )
+        const { to } = items[i]
+        dummy.position.set(...to.p)
+        dummy.rotation.set(...to.r)
         dummy.updateMatrix()
         mesh.setMatrixAt(i, dummy.matrix)
       }
@@ -101,7 +83,7 @@ export function Reception({ detailed }: { detailed: boolean }) {
 
     apply(papersRef.current, layouts.papers)
     apply(blocksRef.current, layouts.blocks)
-  })
+  }, [layouts])
 
   return (
     <group>
@@ -127,7 +109,7 @@ export function Reception({ detailed }: { detailed: boolean }) {
       <Counter position={[-0.34, FLOOR, 0.52]} rotationY={Math.PI} w={0.32} warm />
       {detailed && <CoatRail position={[-0.2, FLOOR, 0.147]} rotationY={0} />}
 
-      {/* intake forms and referral documents, scattered then resolved */}
+      {/* fixed, neatly collated intake forms and referral documents */}
       <instancedMesh ref={papersRef} args={[undefined, undefined, N_PAPERS]} material={mats.paper}>
         <boxGeometry args={[0.021, 0.0013, 0.029]} />
       </instancedMesh>

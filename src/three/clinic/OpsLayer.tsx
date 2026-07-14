@@ -4,7 +4,6 @@ import { useFrame } from '@react-three/fiber'
 import { getMaterials } from '../materials'
 import { CLINIC } from '../constants'
 import { mulberry32 } from '../../lib/rng'
-import { lerp } from '../../lib/math'
 import { smoothedState, sceneT, swin } from '../../scroll/journey'
 import { makeInboxStageTexture, useFontsReady } from '../textures'
 import { ShadowOval } from './props'
@@ -127,37 +126,22 @@ export function OpsLayer({ detailed }: { detailed: boolean }) {
     return cards
   }, [])
 
+  useEffect(() => {
+    const mesh = cardsRef.current
+    if (!mesh) return
+    for (let i = 0; i < layout.length; i++) {
+      const card = layout[i]
+      dummy.position.set(...card.to)
+      dummy.rotation.set(0, 0, 0)
+      dummy.updateMatrix()
+      mesh.setMatrixAt(i, dummy.matrix)
+    }
+    mesh.instanceMatrix.needsUpdate = true
+  }, [layout])
+
   useFrame(() => {
     const s = sceneT(smoothedState.p, 'ops')
-    const mesh = cardsRef.current
-    if (mesh) {
-      // the task queues belong to the overhead scene: before it begins the
-      // clinic reads clean, and the work "arrives" as the camera rises
-      const cardsVisible = s > 0.015
-      if (mesh.visible !== cardsVisible) mesh.visible = cardsVisible
-      for (let i = 0; i < layout.length; i++) {
-        const card = layout[i]
-        const [a, b] = card.window
-        const local = swin(s, a, b)
-        const ti = Math.min(1, Math.max(0, local * 1.5 - card.stagger * 0.5))
-        const e = ti * ti * (3 - 2 * ti)
-        dummy.position.set(
-          lerp(card.from[0], card.to[0], e),
-          lerp(card.from[1], card.to[1], e),
-          lerp(card.from[2], card.to[2], e),
-        )
-        dummy.rotation.set(
-          lerp(card.fromR[0], 0, e),
-          lerp(card.fromR[1], 0, e),
-          lerp(card.fromR[2], 0, e),
-        )
-        dummy.updateMatrix()
-        mesh.setMatrixAt(i, dummy.matrix)
-      }
-      mesh.instanceMatrix.needsUpdate = true
-    }
-
-    // screens settle once the queues are mostly worked
+    // fixed screens may change interface state; no physical object moves
     inboxMats[1].opacity = swin(s, 0.55, 0.9)
   })
 
@@ -225,7 +209,7 @@ export function OpsLayer({ detailed }: { detailed: boolean }) {
         </group>
       ))}
 
-      {/* the task cards being worked across all four stations */}
+      {/* fixed, orderly task stacks across all four stations */}
       <instancedMesh
         ref={cardsRef}
         args={[undefined, undefined, layout.length]}

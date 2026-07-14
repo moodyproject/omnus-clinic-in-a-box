@@ -13,10 +13,10 @@ import { OpsLayer } from './OpsLayer'
 import { People } from './people/People'
 import type { Quality } from '../../hooks/useMediaFlags'
 
-const T = 0.016
+const T = 0.022
 const FLOOR = CLINIC.floorY
 
-/** one interior partition or perimeter wall, with a slim graphite cap trim */
+/** one joined architectural wall with warm cap trim and a recessed skirting line */
 function Wall({
   a,
   b,
@@ -34,18 +34,17 @@ function Wall({
   const size: [number, number, number] = horizontal ? [len, h, T] : [T, h, len]
   return (
     <group>
-      <mesh position={[cx, FLOOR + h / 2, cz]} material={mats.wall}>
+      <mesh position={[cx, FLOOR + h / 2, cz]} material={mats.wall} castShadow receiveShadow>
         <boxGeometry args={size} />
       </mesh>
-      <mesh position={[cx, FLOOR + h + 0.0025, cz]} material={mats.structure}>
+      <mesh position={[cx, FLOOR + h + 0.002, cz]} material={mats.wallTrim}>
         <boxGeometry
-          args={horizontal ? [len + 0.003, 0.005, T + 0.005] : [T + 0.005, 0.005, len + 0.003]}
+          args={horizontal ? [len + 0.002, 0.004, T + 0.002] : [T + 0.002, 0.004, len + 0.002]}
         />
       </mesh>
-      {/* baseboard skirting on both faces */}
-      <mesh position={[cx, FLOOR + 0.007, cz]} material={mats.structure}>
+      <mesh position={[cx, FLOOR + 0.006, cz]} material={mats.wallTrim}>
         <boxGeometry
-          args={horizontal ? [len + 0.002, 0.014, T + 0.004] : [T + 0.004, 0.014, len + 0.002]}
+          args={horizontal ? [len + 0.002, 0.012, T + 0.003] : [T + 0.003, 0.012, len + 0.002]}
         />
       </mesh>
     </group>
@@ -67,15 +66,33 @@ function DoorLeaf({
   const mats = getMaterials()
   return (
     <group position={[position[0], FLOOR, position[1]]} rotation-y={swing}>
-      <mesh position={[0, 0.12, leafZ * 0.05]} material={mats.wall}>
-        <boxGeometry args={[0.013, 0.24, 0.098]} />
+      <mesh position={[0, 0.1025, leafZ * 0.05]} material={mats.wall} castShadow>
+        <boxGeometry args={[0.012, 0.205, 0.098]} />
       </mesh>
-      <mesh position={[0, 0.2425, leafZ * 0.05]} material={mats.structure}>
-        <boxGeometry args={[0.015, 0.004, 0.102]} />
+      <mesh position={[0, 0.207, leafZ * 0.05]} material={mats.wallTrim}>
+        <boxGeometry args={[0.014, 0.003, 0.102]} />
       </mesh>
       {/* handle */}
       <mesh position={[0.009, 0.13, leafZ * 0.086]} material={mats.bezel}>
         <boxGeometry args={[0.005, 0.005, 0.014]} />
+      </mesh>
+    </group>
+  )
+}
+
+/** a complete doorway: two jambs and a lintel make the circulation intentional */
+function DoorFrame({ x, z }: { x: number; z: number }) {
+  const mats = getMaterials()
+  const h = 0.215
+  return (
+    <group>
+      {[-0.055, 0.055].map((dz) => (
+        <mesh key={dz} position={[x, FLOOR + h / 2, z + dz]} material={mats.wallTrim}>
+          <boxGeometry args={[T + 0.006, h, 0.01]} />
+        </mesh>
+      ))}
+      <mesh position={[x, FLOOR + h, z]} material={mats.wallTrim}>
+        <boxGeometry args={[T + 0.006, 0.012, 0.12]} />
       </mesh>
     </group>
   )
@@ -152,15 +169,27 @@ export function Clinic({ quality }: { quality: Quality }) {
       <pointLight ref={warmLight} position={[0, 0.62, 0.28]} color="#fff6e8" distance={2.2} decay={1.8} intensity={0} />
       <pointLight ref={coolLight} position={[0, 1.05, -0.15]} color="#f4f2ec" distance={2.4} decay={1.8} intensity={0} />
 
-      {/* porcelain floor field on the dark chassis slab, plus circulation */}
-      <mesh position={[0, FLOOR - 0.004, 0]} material={mats.floor}>
+      {/* one continuous architectural floor slab with four restrained room finishes */}
+      <mesh position={[0, FLOOR - 0.004, 0]} material={mats.floor} receiveShadow>
         <boxGeometry args={[1.14, 0.008, 1.14]} />
       </mesh>
-      <mesh position={[0, FLOOR + 0.0015, 0.35]} material={mats.corridor}>
-        <boxGeometry args={[0.26, 0.004, 0.44]} />
+      <mesh position={[-0.355, FLOOR + 0.0012, 0.355]} material={mats.roomWarm}>
+        <boxGeometry args={[0.41, 0.0024, 0.41]} />
       </mesh>
-      <mesh position={[0, FLOOR + 0.0015, 0]} material={mats.corridor}>
-        <boxGeometry args={[1.14, 0.004, 0.24]} />
+      <mesh position={[0.355, FLOOR + 0.0012, 0.355]} material={mats.roomMineral}>
+        <boxGeometry args={[0.41, 0.0024, 0.41]} />
+      </mesh>
+      <mesh position={[0.355, FLOOR + 0.0012, -0.355]} material={mats.roomWarm}>
+        <boxGeometry args={[0.41, 0.0024, 0.41]} />
+      </mesh>
+      <mesh position={[-0.355, FLOOR + 0.0012, -0.355]} material={mats.roomMineral}>
+        <boxGeometry args={[0.41, 0.0024, 0.41]} />
+      </mesh>
+      <mesh position={[0, FLOOR + 0.0016, 0]} material={mats.corridor}>
+        <boxGeometry args={[1.12, 0.0032, 0.25]} />
+      </mesh>
+      <mesh position={[0, FLOOR + 0.0016, 0]} material={mats.corridor}>
+        <boxGeometry args={[0.25, 0.0032, 1.12]} />
       </mesh>
 
       {/* room flooring: restrained differences per room */}
@@ -201,37 +230,46 @@ export function Clinic({ quality }: { quality: Quality }) {
       <Wall a={[-0.57, 0.562]} b={[-0.2, 0.562]} />
       <Wall a={[0.2, 0.562]} b={[0.57, 0.562]} />
 
-      {/* room partitions with door gaps onto the cross corridor */}
-      <Wall a={[-0.14, 0.3]} b={[-0.14, 0.55]} />
-      <Wall a={[-0.55, 0.13]} b={[-0.3, 0.13]} />
-      <Wall a={[0.14, 0.3]} b={[0.14, 0.55]} />
-      <Wall a={[0.3, 0.13]} b={[0.55, 0.13]} />
-      <Wall a={[0.14, -0.55]} b={[0.14, -0.3]} />
-      <Wall a={[0.3, -0.13]} b={[0.55, -0.13]} />
-      <Wall a={[-0.14, -0.55]} b={[-0.14, -0.3]} />
-      <Wall a={[-0.55, -0.13]} b={[-0.3, -0.13]} />
+      {/* four fully bounded rooms around a continuous cross corridor */}
+      <Wall a={[-0.14, 0.14]} b={[-0.14, 0.245]} />
+      <Wall a={[-0.14, 0.355]} b={[-0.14, 0.562]} />
+      <Wall a={[0.14, 0.14]} b={[0.14, 0.245]} />
+      <Wall a={[0.14, 0.355]} b={[0.14, 0.562]} />
+      <Wall a={[-0.562, 0.14]} b={[-0.14, 0.14]} />
+      <Wall a={[0.14, 0.14]} b={[0.562, 0.14]} />
+      <Wall a={[-0.14, -0.562]} b={[-0.14, -0.355]} />
+      <Wall a={[-0.14, -0.245]} b={[-0.14, -0.14]} />
+      <Wall a={[0.14, -0.562]} b={[0.14, -0.355]} />
+      <Wall a={[0.14, -0.245]} b={[0.14, -0.14]} />
+      <Wall a={[-0.562, -0.14]} b={[-0.14, -0.14]} />
+      <Wall a={[0.14, -0.14]} b={[0.562, -0.14]} />
+
+      <DoorFrame x={-0.14} z={0.3} />
+      <DoorFrame x={0.14} z={0.3} />
+      <DoorFrame x={-0.14} z={-0.3} />
+      <DoorFrame x={0.14} z={-0.3} />
 
       {/* ajar door leaves at the four room openings */}
-      <DoorLeaf position={[-0.14, 0.3]} leafZ={-1} swing={0.8} />
-      <DoorLeaf position={[0.14, 0.3]} leafZ={-1} swing={-0.8} />
-      <DoorLeaf position={[0.14, -0.3]} leafZ={1} swing={0.8} />
-      <DoorLeaf position={[-0.14, -0.3]} leafZ={1} swing={-0.8} />
+      <DoorLeaf position={[-0.14, 0.245]} leafZ={1} swing={0.62} />
+      <DoorLeaf position={[0.14, 0.245]} leafZ={1} swing={-0.62} />
+      <DoorLeaf position={[0.14, -0.245]} leafZ={-1} swing={0.62} />
+      <DoorLeaf position={[-0.14, -0.245]} leafZ={-1} swing={-0.62} />
 
       {/* the central intelligence core: a ceramic instrument, not a monolith */}
       <group position={[CLINIC.core.x, 0, CLINIC.core.z]}>
         <mesh position={[0, FLOOR + 0.016, 0]} material={mats.structure}>
           <cylinderGeometry args={[0.028, 0.032, 0.032, 20]} />
         </mesh>
-        <mesh position={[0, FLOOR + 0.17, 0]} material={mats.furniture}>
-          <cylinderGeometry args={[0.019, 0.024, 0.3, 20]} />
+        <mesh position={[0, FLOOR + 0.115, 0]} material={mats.furniture} castShadow>
+          <cylinderGeometry args={[0.019, 0.024, 0.19, 20]} />
         </mesh>
-        <mesh position={[0, FLOOR + 0.345, 0]} material={mats.structure}>
-          <cylinderGeometry args={[0.005, 0.005, 0.04, 8]} />
+        <mesh position={[0, FLOOR + 0.23, 0]} material={mats.structure}>
+          <cylinderGeometry args={[0.005, 0.005, 0.032, 8]} />
         </mesh>
-        <mesh position={[0, FLOOR + 0.325, 0]} material={coreMat}>
+        <mesh position={[0, FLOOR + 0.214, 0]} material={coreMat}>
           <cylinderGeometry args={[0.015, 0.015, 0.01, 20]} />
         </mesh>
-        {[FLOOR + 0.11, FLOOR + 0.21].map((y) => (
+        {[FLOOR + 0.075, FLOOR + 0.15].map((y) => (
           <mesh key={y} position={[0, y, 0]} rotation-x={-Math.PI / 2} material={coreMat}>
             <torusGeometry args={[0.023, 0.0016, 6, 32]} />
           </mesh>

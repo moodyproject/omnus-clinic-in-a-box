@@ -39,7 +39,7 @@ export const CLINIC = {
   /** interior half-extent in x/z (leaves a service apron on the chassis) */
   half: 0.57,
   /** partition wall height (architectural model cutaway) */
-  wallH: 0.28,
+  wallH: 0.235,
   /** center of the intelligence core */
   core: { x: 0, z: -0.04 },
 } as const

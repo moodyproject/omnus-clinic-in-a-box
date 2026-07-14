@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { getMaterials, PALETTE } from '../materials'
 import { CLINIC } from '../constants'
@@ -21,7 +21,6 @@ const SOAP = ['subjective', 'objective', 'assessment', 'plan']
 export function ReviewStation() {
   const mats = getMaterials()
   const fontsReady = useFontsReady()
-  const approvalRef = useRef<THREE.Mesh>(null)
 
   const gateMat = useMemo(
     () =>
@@ -76,10 +75,7 @@ export function ReviewStation() {
     const s = sceneT(smoothedState.p, 'review')
     const approve = swin(s, 0.68, 0.9)
 
-    // the approval bar fills only when the physician signs off
-    if (approvalRef.current) {
-      approvalRef.current.scale.x = Math.max(0.001, approve)
-    }
+    // fixed approval instrument changes state without changing geometry
     gateMat.emissiveIntensity = 0.2 + approve * 1.4
     approvedMat.opacity = win(s, 0.86, 0.98)
   })
@@ -118,7 +114,7 @@ export function ReviewStation() {
       <mesh position={[0.34, DESK_TOP + 0.003, -0.408]} material={mats.bezel}>
         <boxGeometry args={[0.1, 0.0022, 0.005]} />
       </mesh>
-      <mesh ref={approvalRef} position={[0.34, DESK_TOP + 0.0042, -0.408]} material={gateMat}>
+      <mesh position={[0.34, DESK_TOP + 0.0042, -0.408]} material={gateMat}>
         <boxGeometry args={[0.1, 0.002, 0.0042]} />
       </mesh>
       <mesh position={[0.34, DESK_TOP + 0.028, -0.406]}>

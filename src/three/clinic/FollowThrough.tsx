@@ -1,11 +1,8 @@
 import * as THREE from 'three'
-import { useMemo, useRef } from 'react'
-import { useFrame } from '@react-three/fiber'
+import { useEffect, useMemo, useRef } from 'react'
 import { getMaterials } from '../materials'
 import { CLINIC } from '../constants'
 import { mulberry32 } from '../../lib/rng'
-import { lerp } from '../../lib/math'
-import { smoothedState, sceneT, swin } from '../../scroll/journey'
 import { Cabinet, WallCabinet, WallDisplay } from './props'
 
 const FLOOR = CLINIC.floorY
@@ -22,9 +19,7 @@ interface SheetPose {
 
 /**
  * scene 6: follow-through. the coordinator (people layer) works the room
- * while approved outputs become physical work: loose referral paperwork on
- * the counter collates into the out-tray, and patient instructions stack by
- * the summary display. no abstract routes.
+ * beside fixed, orderly referral and patient-instruction stations.
  */
 export function FollowThrough({ detailed }: { detailed: boolean }) {
   const mats = getMaterials()
@@ -52,28 +47,18 @@ export function FollowThrough({ detailed }: { detailed: boolean }) {
     })
   }, [])
 
-  useFrame(() => {
-    const s = sceneT(smoothedState.p, 'after')
-    const t = swin(s, 0.15, 0.85)
+  useEffect(() => {
     const mesh = sheetsRef.current
     if (!mesh) return
     for (let i = 0; i < N_SHEETS; i++) {
-      const ti = Math.min(1, Math.max(0, t * 1.5 - (i / N_SHEETS) * 0.5))
-      const e = ti * ti * (3 - 2 * ti)
       const d = layout[i]
-      // arc slightly upward mid-move so sheets read as being handled
-      const arc = Math.sin(e * Math.PI) * 0.02
-      dummy.position.set(
-        lerp(d.from[0], d.to[0], e),
-        lerp(d.from[1], d.to[1], e) + arc,
-        lerp(d.from[2], d.to[2], e),
-      )
-      dummy.rotation.set(i < 5 && e > 0.9 ? -0.35 * (e - 0.9) * 10 : 0, lerp(d.fromR, d.toR, e), 0)
+      dummy.position.set(...d.to)
+      dummy.rotation.set(0, d.toR, 0)
       dummy.updateMatrix()
       mesh.setMatrixAt(i, dummy.matrix)
     }
     mesh.instanceMatrix.needsUpdate = true
-  })
+  }, [layout])
 
   return (
     <group>
@@ -103,7 +88,7 @@ export function FollowThrough({ detailed }: { detailed: boolean }) {
         </mesh>
       )}
 
-      {/* paperwork being worked: scattered -> collated */}
+      {/* fixed collated paperwork; only the coordinator moves */}
       <instancedMesh ref={sheetsRef} args={[undefined, undefined, N_SHEETS]} material={mats.paper}>
         <boxGeometry args={[0.021, 0.0014, 0.029]} />
       </instancedMesh>

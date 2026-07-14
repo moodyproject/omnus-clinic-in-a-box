@@ -30,6 +30,12 @@ export interface Materials {
   rug: THREE.MeshStandardMaterial
   /** interior partition walls */
   wall: THREE.MeshStandardMaterial
+  /** warm architectural trim used for wall caps and door frames */
+  wallTrim: THREE.MeshStandardMaterial
+  /** subtle warm floor used in patient-facing rooms */
+  roomWarm: THREE.MeshStandardMaterial
+  /** quieter mineral floor used in work rooms */
+  roomMineral: THREE.MeshStandardMaterial
   /** graphite structural trims, rails, frames */
   structure: THREE.MeshStandardMaterial
   /** machined aluminum shelving and racks */
@@ -65,11 +71,14 @@ export function getMaterials(): Materials {
     inset: std({ color: '#232629', metalness: 0.6, roughness: 0.5, envMapIntensity: 1.0 }),
     chassis: std({ color: '#2b2e32', metalness: 0.75, roughness: 0.38, envMapIntensity: 1.15 }),
     fin: std({ color: '#5a5f66', metalness: 0.82, roughness: 0.36, envMapIntensity: 1.3 }),
-    floor: std({ color: '#e2dccd', roughness: 0.92 }),
-    corridor: std({ color: '#f1eee5', roughness: 0.88 }),
-    rug: std({ color: '#d3cbb8', roughness: 0.96 }),
-    wall: std({ color: '#fcfbf8', roughness: 0.95 }),
-    structure: std({ color: '#34383d', metalness: 0.6, roughness: 0.52 }),
+    floor: std({ color: '#d8d1c1', roughness: 0.94 }),
+    corridor: std({ color: '#eeeae0', roughness: 0.9 }),
+    rug: std({ color: '#c9bfa9', roughness: 0.98 }),
+    wall: std({ color: '#f6f2e9', roughness: 0.94 }),
+    wallTrim: std({ color: '#b9ab92', metalness: 0.08, roughness: 0.72 }),
+    roomWarm: std({ color: '#e4dac7', roughness: 0.96 }),
+    roomMineral: std({ color: '#d9d9d2', roughness: 0.94 }),
+    structure: std({ color: '#555a5d', metalness: 0.42, roughness: 0.58 }),
     deck: std({ color: '#3c4045', metalness: 0.75, roughness: 0.32, envMapIntensity: 1.5 }),
     deskTop: std({ color: '#2b2e32', metalness: 0.35, roughness: 0.5 }),
     oak: std({ color: '#a8895f', roughness: 0.72 }),

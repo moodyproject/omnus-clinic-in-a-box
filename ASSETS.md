@@ -4,6 +4,13 @@ every external asset used by this site, with provenance and license. all other
 geometry, screens, labels, and textures are generated procedurally at runtime
 (see `src/three/textures.ts`) and ship no image or model files.
 
+the 2026-07 interior-quality pass (furniture, cabinetry, doors, terrazzo,
+rug weave, floor ambient occlusion, framed prints) added **no external
+assets**: every new prop is procedural geometry built from the shared
+material set (`src/three/clinic/props.tsx`), and every new surface is a
+runtime canvas texture (`src/three/textures.ts`). there are no new files to
+license, download, or optimize.
+
 ## miniature human characters
 
 the clinic's cast is built from two CC0 character packs by Quaternius. the

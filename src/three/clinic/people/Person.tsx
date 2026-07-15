@@ -21,11 +21,11 @@ const MODEL_SCALE = 0.1
  * walk-to-sit transition scrubs cleanly in both scroll directions.
  */
 const SIT = {
-  bodyDrop: 0.4,
+  bodyDrop: 0.5,
   bodyBack: 0.05,
-  spineLean: 0.12,
+  spineLean: 0.14,
   ankleY: 0.06,
-  ankleForward: 0.52,
+  ankleForward: 0.42,
 }
 
 // dev-only pose tuning: ?sit=drop,back,lean,ankleY,ankleForward

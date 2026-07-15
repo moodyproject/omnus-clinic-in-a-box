@@ -124,12 +124,12 @@
    (gsap owns the element transform). */
 @media (min-width: 901px) {
   .copy-block[data-scrim] {
-    width: min(30vw, 400px);
+    width: min(27vw, 372px);
   }
 
   .copy-block[data-scrim] .copy-inner {
     position: relative;
-    padding: 30px 0;
+    padding: 22px 0;
   }
 
   .copy-block[data-scrim] .copy-inner::before {
@@ -142,25 +142,25 @@
   }
 
   .copy-block[data-scrim][data-side='left'] .copy-inner {
-    padding-right: 40px;
+    padding-right: 30px;
     padding-left: var(--edge-inset);
     margin-left: calc(-1 * var(--edge-inset));
     background: linear-gradient(
       to right,
-      color-mix(in srgb, var(--soft-white) 96%, transparent) 45%,
-      color-mix(in srgb, var(--soft-white) 82%, transparent) 78%,
+      color-mix(in srgb, var(--soft-white) 93%, transparent) 34%,
+      color-mix(in srgb, var(--soft-white) 72%, transparent) 68%,
       transparent
     );
   }
 
   .copy-block[data-scrim][data-side='right'] .copy-inner {
-    padding-left: 40px;
+    padding-left: 30px;
     padding-right: var(--edge-inset);
     margin-right: calc(-1 * var(--edge-inset));
     background: linear-gradient(
       to left,
-      color-mix(in srgb, var(--soft-white) 96%, transparent) 45%,
-      color-mix(in srgb, var(--soft-white) 82%, transparent) 78%,
+      color-mix(in srgb, var(--soft-white) 93%, transparent) 34%,
+      color-mix(in srgb, var(--soft-white) 72%, transparent) 68%,
       transparent
     );
   }
@@ -240,14 +240,14 @@
     top: auto;
     bottom: 0;
     justify-content: flex-end;
-    padding: 40px 20px calc(18px + env(safe-area-inset-bottom, 0px));
+    padding: 26px 20px calc(16px + env(safe-area-inset-bottom, 0px));
     border-radius: 0;
     background: linear-gradient(
       to top,
       color-mix(in srgb, var(--soft-white) 99%, transparent) 0%,
-      color-mix(in srgb, var(--soft-white) 97%, transparent) 55%,
-      color-mix(in srgb, var(--soft-white) 88%, transparent) 78%,
-      color-mix(in srgb, var(--soft-white) 50%, transparent) 92%,
+      color-mix(in srgb, var(--soft-white) 96%, transparent) 62%,
+      color-mix(in srgb, var(--soft-white) 82%, transparent) 82%,
+      color-mix(in srgb, var(--soft-white) 42%, transparent) 93%,
       transparent
     );
   }

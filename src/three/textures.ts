@@ -421,6 +421,112 @@ export function makeLabelTexture(
   return tex
 }
 
+/** small tiling terrazzo speckle for the corridor floor */
+export function makeTerrazzoTexture(): THREE.CanvasTexture {
+  const { canvas, ctx } = makeCanvas(256, 256)
+  const rand = mulberry32(71)
+  ctx.fillStyle = '#efece4'
+  ctx.fillRect(0, 0, 256, 256)
+  const chips = ['#d8d2c4', '#c5beac', '#b0a897', '#e2ddd1', '#9e978a', '#cabfa6']
+  for (let i = 0; i < 340; i++) {
+    const x = rand() * 256
+    const y = rand() * 256
+    const r = 0.6 + rand() * 2.1
+    ctx.fillStyle = chips[Math.floor(rand() * chips.length)]
+    ctx.globalAlpha = 0.35 + rand() * 0.4
+    ctx.beginPath()
+    ctx.ellipse(x, y, r, r * (0.6 + rand() * 0.7), rand() * Math.PI, 0, Math.PI * 2)
+    ctx.fill()
+  }
+  ctx.globalAlpha = 1
+  return toTexture(canvas)
+}
+
+/** subtle woven texture for the waiting-area rug */
+export function makeWeaveTexture(): THREE.CanvasTexture {
+  const { canvas, ctx } = makeCanvas(128, 128)
+  ctx.fillStyle = '#cfc2a8'
+  ctx.fillRect(0, 0, 128, 128)
+  for (let y = 0; y < 128; y += 4) {
+    ctx.fillStyle = y % 8 === 0 ? 'rgba(17,19,21,0.07)' : 'rgba(251,250,247,0.06)'
+    ctx.fillRect(0, y, 128, 2)
+  }
+  for (let x = 0; x < 128; x += 6) {
+    ctx.fillStyle = 'rgba(17,19,21,0.045)'
+    ctx.fillRect(x, 0, 2, 128)
+  }
+  return toTexture(canvas)
+}
+
+/**
+ * inverse vignette laid over each room floor: transparent center, softly
+ * darker edges and corners. cheap ambient occlusion that grounds the walls
+ * without any postprocessing.
+ */
+export function makeFloorAOTexture(): THREE.CanvasTexture {
+  const { canvas, ctx } = makeCanvas(256, 256)
+  ctx.clearRect(0, 0, 256, 256)
+  const edge = 46
+  const grad = (x0: number, y0: number, x1: number, y1: number) => {
+    const g = ctx.createLinearGradient(x0, y0, x1, y1)
+    g.addColorStop(0, 'rgba(64, 58, 46, 0.34)')
+    g.addColorStop(1, 'rgba(64, 58, 46, 0)')
+    return g
+  }
+  ctx.fillStyle = grad(0, 0, edge, 0)
+  ctx.fillRect(0, 0, edge, 256)
+  ctx.fillStyle = grad(256, 0, 256 - edge, 0)
+  ctx.fillRect(256 - edge, 0, edge, 256)
+  ctx.fillStyle = grad(0, 0, 0, edge)
+  ctx.fillRect(0, 0, 256, edge)
+  ctx.fillStyle = grad(0, 256, 0, 256 - edge)
+  ctx.fillRect(0, 256 - edge, 256, edge)
+  return toTexture(canvas)
+}
+
+/** small framed prints: quiet abstract compositions in the site palette */
+export function makeArtTexture(variant: 0 | 1 | 2): THREE.CanvasTexture {
+  const { canvas, ctx } = makeCanvas(128, 160)
+  ctx.fillStyle = '#f6f3ec'
+  ctx.fillRect(0, 0, 128, 160)
+  if (variant === 0) {
+    // sage field over a sand horizon
+    ctx.fillStyle = 'rgba(111, 143, 131, 0.55)'
+    ctx.beginPath()
+    ctx.arc(64, 66, 34, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.fillStyle = 'rgba(179, 162, 132, 0.5)'
+    ctx.fillRect(22, 112, 84, 10)
+  } else if (variant === 1) {
+    // two tall grasses
+    ctx.strokeStyle = 'rgba(95, 122, 99, 0.6)'
+    ctx.lineWidth = 3
+    ctx.beginPath()
+    ctx.moveTo(50, 132)
+    ctx.quadraticCurveTo(44, 70, 60, 34)
+    ctx.moveTo(74, 132)
+    ctx.quadraticCurveTo(84, 84, 72, 48)
+    ctx.stroke()
+    ctx.fillStyle = 'rgba(173, 132, 106, 0.45)'
+    ctx.beginPath()
+    ctx.arc(64, 132, 22, Math.PI, 0)
+    ctx.fill()
+  } else {
+    // quiet line composition
+    ctx.strokeStyle = 'rgba(17, 19, 21, 0.35)'
+    ctx.lineWidth = 2
+    for (let i = 0; i < 4; i++) {
+      ctx.beginPath()
+      ctx.moveTo(28, 44 + i * 24)
+      ctx.lineTo(100, 40 + i * 24)
+      ctx.stroke()
+    }
+    ctx.fillStyle = 'rgba(111, 143, 131, 0.5)'
+    ctx.fillRect(28, 116, 30, 8)
+  }
+  return toTexture(canvas)
+}
+
 let sharedShadow: THREE.CanvasTexture | null = null
 
 /** shared soft shadow blob for furniture feet: cheap ambient occlusion */

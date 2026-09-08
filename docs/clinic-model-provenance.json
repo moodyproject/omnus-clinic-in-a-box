@@ -1,0 +1,126 @@
+{
+  "acceptance": "explicit human acceptance; independent review waived",
+  "parent_task": "t_9a9c1572",
+  "parent_runs": [
+    452,
+    454
+  ],
+  "donor_worktree": "omnus-clinic-visual-redesign",
+  "base_commit": "b24285f5dfcfa6c8fe68171da33d9d832d4e6da7",
+  "authored_source": "Preserved read-only donor assets/3d-redesign; .blend files intentionally not copied into website release.",
+  "licenses": "Authored furniture; MakeHuman/MPFB graphical assets CC0; milkman_sit_01a CC0. MPFB code GPLv3 is authoring tooling only.",
+  "imported_assets": [
+    {
+      "path": "public/models/3d-redesign/clinic-shell.glb",
+      "bytes": 86824,
+      "sha256": "11c529a6397a095d3f4c6c9bd6dfc2940d8c2fe1d30994bae0f4678de0e61593"
+    },
+    {
+      "path": "public/models/3d-redesign/consultation.glb",
+      "bytes": 1528980,
+      "sha256": "532b1f0724022b6259854f352d7d1c38631995ce012914f73baceadd22e41063"
+    },
+    {
+      "path": "public/models/3d-redesign/physician-seated.glb",
+      "bytes": 1896452,
+      "sha256": "9fdd56e23869f9ff2791c1789088259f95c4b610ead2ec99d44160b31a52ffbd"
+    },
+    {
+      "path": "public/models/3d-redesign/patient-seated.glb",
+      "bytes": 1592148,
+      "sha256": "1a80af38b73d2ad5a92858402fd9424983e31e8c23e1743efbab9d1bd91dd03e"
+    },
+    {
+      "path": "public/models/3d-redesign/room-people.glb",
+      "bytes": 3299024,
+      "sha256": "ac132f3321a968962def9cbabdc18d898d6e1605fcee9094609fa886cec3531f"
+    },
+    {
+      "path": "public/models/3d-redesign/clinic-static.png",
+      "bytes": 170169,
+      "sha256": "738a12ad674926a8bf9badb0bf95f812ccb3d21317cc40a5ddc40ee7cd2635e0"
+    },
+    {
+      "path": "public/models/3d-redesign/licenses/MPFB-LICENSE.md",
+      "bytes": 3188,
+      "sha256": "5cefb60680cb9efd4550a2e65d719021cfbec9dad3658481d11d48ae863ce04d"
+    },
+    {
+      "path": "public/models/3d-redesign/licenses/MPFB-LICENSE.CODE.md",
+      "bytes": 34940,
+      "sha256": "26c03bc049c15fc5b9e52d791a06f1a6bc32f89edc8f8c701ab0aadf66e85b82"
+    },
+    {
+      "path": "public/models/3d-redesign/licenses/MPFB-LICENSE.ASSETS.md",
+      "bytes": 6962,
+      "sha256": "f6089cba01cb570a24712b41ab8a586ccd3cc5ef53dc266ca50b95c288956d2c"
+    },
+    {
+      "path": "public/models/3d-redesign/licenses/milkman_sit_01a.meta",
+      "bytes": 115,
+      "sha256": "25e29cc7b295e918a2977530417b24df32eb04a536e9603fbd42ecfb2113f3cb"
+    }
+  ],
+  "source_hashes": [
+    {
+      "path": "assets/3d-redesign/clinic-source.blend",
+      "bytes": 8722444,
+      "sha256": "a2490cb36735361ab7ee82b4b8d56a45442ba3e23c11fbd61f3a45eec99eb503"
+    },
+    {
+      "path": "assets/3d-redesign/clinic-review.blend",
+      "bytes": 170478537,
+      "sha256": "8220978f8be1e7c653db234fa56df9ee0398dfd8964c72599d980d81ce9476a1"
+    },
+    {
+      "path": "assets/3d-redesign/room-people-source.blend",
+      "bytes": 130758270,
+      "sha256": "a22cf7a7beb5435be4b2dd6bd03b405374c78ddbc05bba9ef7fbfb2a90fc7a5a"
+    },
+    {
+      "path": "assets/3d-redesign/physician-source.blend",
+      "bytes": 26640280,
+      "sha256": "ac337b3b3659a8d2e59eae24f576b42626b86f0bc1b705fa5777ad340c97623b"
+    },
+    {
+      "path": "assets/3d-redesign/patient-source.blend",
+      "bytes": 28267437,
+      "sha256": "e580034d00ae4161525cd16941c31c820c1d057b0c3683e1070cf8e19b743b12"
+    },
+    {
+      "path": "assets/3d-redesign/build_clinic.py",
+      "bytes": 23940,
+      "sha256": "f93ec854612bd271ca651940284702c1a038cd53ccf2daaf6d8a77d2a6e0aa60"
+    },
+    {
+      "path": "assets/3d-redesign/build_room_people.py",
+      "bytes": 6162,
+      "sha256": "79ad06152a88a528db0b764c15480fe886aad0c1b00a1a81ab1378aeb6b3cadb"
+    },
+    {
+      "path": "assets/3d-redesign/assemble_review.py",
+      "bytes": 3247,
+      "sha256": "17fbc2b35b7764208ab9a806a1ce4b6d37dcae8fdff956dd7f77d068b2fa50bf"
+    },
+    {
+      "path": "assets/3d-redesign/optimize.mjs",
+      "bytes": 2105,
+      "sha256": "57805da37a051d62ce29ece2118681cb02e31bb1c1407e7699a5d4014ed634cc"
+    },
+    {
+      "path": "assets/3d-redesign/provenance.json",
+      "bytes": 13446,
+      "sha256": "921218835834d2db7e21e298b4ca934f71b07171e495944b3c8999065a674475"
+    },
+    {
+      "path": "assets/3d-redesign/ASSETS.md",
+      "bytes": 14457,
+      "sha256": "f9429fec64e9aef26e81fbee2b5e8a81a8861cc0a0cea83b6403b200ba42afeb"
+    },
+    {
+      "path": "assets/3d-redesign/viewer/main.mjs",
+      "bytes": 9481,
+      "sha256": "8929a48a5360eadc3779e4af196c5148517d9d3b9308b019c359822cc9b8ad0d"
+    }
+  ]
+}

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Nav } from './ui/Nav'
 import { Journey } from './scroll/JourneySection'
 import { StaticJourney } from './ui/StaticJourney'
@@ -27,15 +27,21 @@ export default function App() {
   const mobile = useIsMobile()
   const quality = useQuality()
   const [dialog, setDialog] = useState<Dialog>(null)
+  const [runtimeFailed, setRuntimeFailed] = useState(false)
+  const onSceneError = useCallback(() => setRuntimeFailed(true), [])
 
   const staticMode = useMemo(() => {
     const forced = new URLSearchParams(window.location.search).has('static')
-    return forced || reducedMotion || !webgl
-  }, [reducedMotion, webgl])
+    return forced || reducedMotion || !webgl || runtimeFailed
+  }, [reducedMotion, webgl, runtimeFailed])
 
   useEffect(() => {
     if (staticMode) hideBoot()
   }, [staticMode])
+
+  useEffect(() => {
+    if (runtimeFailed) window.scrollTo({ top: 0, behavior: 'instant' })
+  }, [runtimeFailed])
 
   const navigate = (target: string) => {
     const behavior: ScrollBehavior = reducedMotion ? 'auto' : 'smooth'
@@ -68,7 +74,7 @@ export default function App() {
       <main>
         {staticMode ? (
           <StaticJourney
-            reason={webgl ? 'reduced-motion' : 'no-webgl'}
+            reason={runtimeFailed ? 'load-failure' : webgl ? 'reduced-motion' : 'no-webgl'}
             onBookDemo={() => setDialog('demo')}
             onWaitlist={() => setDialog('waitlist')}
           />
@@ -76,6 +82,7 @@ export default function App() {
           <Journey
             quality={quality}
             mobile={mobile}
+            onError={onSceneError}
             onBookDemo={() => setDialog('demo')}
             onWaitlist={() => setDialog('waitlist')}
           />

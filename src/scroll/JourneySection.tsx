@@ -13,6 +13,7 @@ gsap.registerPlugin(ScrollTrigger)
 interface Props {
   quality: Quality
   mobile: boolean
+  onError: () => void
   onBookDemo: () => void
   onWaitlist: () => void
 }
@@ -22,7 +23,7 @@ interface Props {
  * a sticky viewport plus one ScrollTrigger that writes normalized progress
  * into journeyState for the r3f loop, and drives the dom copy timeline.
  */
-export function Journey({ quality, mobile, onBookDemo, onWaitlist }: Props) {
+export function Journey({ quality, mobile, onError, onBookDemo, onWaitlist }: Props) {
   const sectionRef = useRef<HTMLElement>(null)
   const viewportRef = useRef<HTMLDivElement>(null)
   const [cueHidden, setCueHidden] = useState(false)
@@ -126,6 +127,7 @@ export function Journey({ quality, mobile, onBookDemo, onWaitlist }: Props) {
           mobile={mobile}
           active={inView && tabVisible}
           onReady={hideBoot}
+          onError={onError}
         />
         <JourneyCopy journeyEl={sectionRef} onBookDemo={onBookDemo} onWaitlist={onWaitlist} />
         <ScrollCue hidden={cueHidden} />

@@ -1,8 +1,8 @@
-import { useEffect } from 'react'
+import { Component, useEffect, type ReactNode } from 'react'
 import { Canvas, useThree } from '@react-three/fiber'
 import { Studio } from './Studio'
 import { Appliance } from './appliance/Appliance'
-import { Clinic } from './clinic/Clinic'
+import { AcceptedClinic } from './clinic/AcceptedClinic'
 import { CameraRig } from './CameraRig'
 import type { Quality } from '../hooks/useMediaFlags'
 
@@ -11,9 +11,16 @@ import type { Quality } from '../hooks/useMediaFlags'
  * manual frame driver so hidden/headless tabs, where requestAnimationFrame
  * is throttled to zero, can still render frames for qa screenshots.
  */
-function SceneDriver({ onReady }: { onReady?: () => void }) {
+function SceneDriver({ onReady, onError }: { onReady?: () => void; onError: () => void }) {
   const advance = useThree((s) => s.advance)
   const get = useThree((s) => s.get)
+  const gl = useThree((s) => s.gl)
+
+  useEffect(() => {
+    const lost = (event: Event) => { event.preventDefault(); onError() }
+    gl.domElement.addEventListener('webglcontextlost', lost)
+    return () => gl.domElement.removeEventListener('webglcontextlost', lost)
+  }, [gl, onError])
 
   useEffect(() => {
     onReady?.()
@@ -48,15 +55,24 @@ interface Props {
   mobile: boolean
   active: boolean
   onReady?: () => void
+  onError: () => void
+}
+
+class SceneBoundary extends Component<{ children: ReactNode; onError: () => void }, { failed: boolean }> {
+  state = { failed: false }
+  static getDerivedStateFromError() { return { failed: true } }
+  componentDidCatch() { this.props.onError() }
+  render() { return this.state.failed ? null : this.props.children }
 }
 
 /**
  * the pinned webgl scene. rendering pauses (frameloop "never") whenever the
  * journey is off-screen or the tab is hidden.
  */
-export function Experience({ quality, mobile, active, onReady }: Props) {
+export function Experience({ quality, mobile, active, onReady, onError }: Props) {
   return (
     <div className="journey-canvas" aria-hidden="true">
+      <SceneBoundary onError={onError}>
       <Canvas
         dpr={quality.dpr}
         shadows={quality.shadows}
@@ -73,10 +89,11 @@ export function Experience({ quality, mobile, active, onReady }: Props) {
       >
         <Studio quality={quality} />
         <Appliance quality={quality} />
-        <Clinic quality={quality} />
+        <AcceptedClinic onError={onError} />
         <CameraRig mobile={mobile} />
-        <SceneDriver onReady={onReady} />
+        <SceneDriver onReady={onReady} onError={onError} />
       </Canvas>
+      </SceneBoundary>
     </div>
   )
 }

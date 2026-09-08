@@ -518,6 +518,25 @@
   border-top: 1px solid var(--hairline-soft);
 }
 
+.clinic-static {
+  max-width: 800px;
+  margin: 0 auto 40px;
+  padding: 0 20px;
+}
+
+.clinic-static-image {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius-card);
+}
+
+.clinic-static figcaption {
+  margin-top: 10px;
+  color: var(--ink-2);
+  font-size: var(--text-small);
+}
+
 .static-scene .step-index {
   font-size: var(--text-micro);
   letter-spacing: 0.14em;

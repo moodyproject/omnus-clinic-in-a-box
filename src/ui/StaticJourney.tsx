@@ -21,7 +21,7 @@ export function StaticJourney({
   onBookDemo,
   onWaitlist,
 }: {
-  reason: 'reduced-motion' | 'no-webgl'
+  reason: 'reduced-motion' | 'no-webgl' | 'load-failure'
   onBookDemo: () => void
   onWaitlist: () => void
 }) {
@@ -31,7 +31,9 @@ export function StaticJourney({
   return (
     <div className="static-journey">
       <p className="static-note" role="note">
-        {reason === 'no-webgl' ? misc.fallbackNote : misc.reducedNote}
+        {reason === 'load-failure'
+          ? 'The 3D clinic could not load. Explore the saved clinic image and the complete story below, or reload to retry.'
+          : reason === 'no-webgl' ? misc.fallbackNote : misc.reducedNote}
       </p>
 
       <section className="static-hero">
@@ -51,6 +53,11 @@ export function StaticJourney({
         </div>
         <DeviceIllustration />
       </section>
+
+      <figure className="clinic-static">
+        <img className="clinic-static-image" src={`${import.meta.env.BASE_URL}models/3d-redesign/clinic-static.png`} alt="Saved rendering of the four-room clinic, furnished with six seated people" />
+        <figcaption>Clinic model · saved view</figcaption>
+      </figure>
 
       {rest.map((scene, i) => (
         <section

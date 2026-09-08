@@ -4,11 +4,13 @@ import * as THREE from 'three'
 import { CLINIC } from '../constants'
 import { smoothedState, shellOpen, swin } from '../../scroll/journey'
 import { createWallCutaway, disposeModel, loadAcceptedModel } from './acceptedModel'
+import { createAcceptedMotion } from './acceptedMotion'
 
 /** The accepted scene replaces the entire procedural clinic/people subtree. */
 export function AcceptedClinic({ onError }: { onError: () => void }) {
   const mount = useRef<THREE.Group>(null)
   const update = useRef<((cut: number) => void) | null>(null)
+  const motion = useRef<ReturnType<typeof createAcceptedMotion> | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -22,11 +24,14 @@ export function AcceptedClinic({ onError }: { onError: () => void }) {
       model.position.y = CLINIC.floorY
       parent?.add(model)
       update.current = createWallCutaway(model)
+      motion.current = createAcceptedMotion(model)
     }).catch(() => { window.clearTimeout(timeout); if (!cancelled) onError() })
     return () => {
       cancelled = true
       window.clearTimeout(timeout)
       update.current = null
+      motion.current?.dispose()
+      motion.current = null
       if (model) { parent?.remove(model); disposeModel(model) }
     }
   }, [onError])
@@ -38,6 +43,7 @@ export function AcceptedClinic({ onError }: { onError: () => void }) {
     // before the room tour. The same pure progress function closes in reverse.
     const cut = swin(p, 0.19, 0.27) * (1 - swin(p, 0.87, 0.92))
     update.current?.(Math.round(cut * 500) / 500)
+    if (mount.current?.visible) motion.current?.update(p)
   })
 
   return <group ref={mount} visible={false} />

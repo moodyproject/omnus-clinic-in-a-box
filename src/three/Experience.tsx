@@ -88,7 +88,7 @@ export function Experience({ quality, mobile, active, onReady, onError }: Props)
         }}
       >
         <Studio quality={quality} />
-        <Appliance quality={quality} />
+        <Appliance quality={quality} mobile={mobile} />
         <AcceptedClinic onError={onError} />
         <CameraRig mobile={mobile} />
         <SceneDriver onReady={onReady} onError={onError} />

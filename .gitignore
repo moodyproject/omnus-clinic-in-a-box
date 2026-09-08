@@ -8,3 +8,7 @@ npm-debug.log*
 screenshots-baseline
 
 scripts/characters/.source-cache
+assets/clinic-motion/local/
+assets/clinic-motion/__pycache__/
+docs/evidence/clinic-motion/
+docs/evidence-motion-*.log

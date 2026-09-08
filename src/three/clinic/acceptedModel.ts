@@ -12,7 +12,8 @@ export async function loadAcceptedModel(base: string, cancelled: () => boolean) 
   const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder)
   try {
     for (const name of ASSETS) {
-      const { scene } = await loader.loadAsync(`${base}models/3d-redesign/${name}.glb`)
+      const { scene, animations } = await loader.loadAsync(`${base}models/3d-redesign/${name}.glb`)
+      scene.animations = animations
       scene.name = name
       if (name === 'physician-seated') scene.position.set(2.65, 0, 2.1)
       if (name === 'patient-seated') {
@@ -23,6 +24,9 @@ export async function loadAcceptedModel(base: string, cancelled: () => boolean) 
         if (node instanceof THREE.Mesh) {
           node.castShadow = true
           node.receiveShadow = true
+          // Bind-pose bounds do not cover travelling/skinned limbs. The six
+          // actors are bounded; the whole clinic already hides and pauses.
+          if (node instanceof THREE.SkinnedMesh) node.frustumCulled = false
           // Keep the donor's authored PBR maps/scalars. The site's environment
           // is for the metal appliance; it must not wash out the clinic maps.
           for (const material of Array.isArray(node.material) ? node.material : [node.material]) {
@@ -109,8 +113,10 @@ export function disposeModel(root: THREE.Object3D) {
   const geometries = new Set<THREE.BufferGeometry>()
   const materials = new Set<THREE.Material>()
   const textures = new Set<THREE.Texture>()
+  const skeletons = new Set<THREE.Skeleton>()
   root.traverse((node) => {
     if (!(node instanceof THREE.Mesh)) return
+    if (node instanceof THREE.SkinnedMesh) skeletons.add(node.skeleton)
     geometries.add(node.geometry)
     for (const material of Array.isArray(node.material) ? node.material : [node.material]) {
       materials.add(material)
@@ -118,6 +124,7 @@ export function disposeModel(root: THREE.Object3D) {
     }
   })
   geometries.forEach((geometry) => geometry.dispose())
+  skeletons.forEach((skeleton) => skeleton.dispose())
   materials.forEach((material) => material.dispose())
   textures.forEach((texture) => { texture.dispose(); if (typeof ImageBitmap !== 'undefined' && texture.image instanceof ImageBitmap) texture.image.close() })
 }

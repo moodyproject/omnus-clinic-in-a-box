@@ -7,7 +7,7 @@
   ],
   "donor_worktree": "omnus-clinic-visual-redesign",
   "base_commit": "b24285f5dfcfa6c8fe68171da33d9d832d4e6da7",
-  "authored_source": "Preserved read-only donor assets/3d-redesign; .blend files intentionally not copied into website release.",
+  "authored_source": "Original accepted donor assets/3d-redesign preserved read-only. Motion derivatives are editable local assets/clinic-motion/local/*.blend (intentionally ignored, not shipped). Reproduction scripts are in assets/clinic-motion/.",
   "licenses": "Authored furniture; MakeHuman/MPFB graphical assets CC0; milkman_sit_01a CC0. MPFB code GPLv3 is authoring tooling only.",
   "imported_assets": [
     {
@@ -22,18 +22,18 @@
     },
     {
       "path": "public/models/3d-redesign/physician-seated.glb",
-      "bytes": 1896452,
-      "sha256": "9fdd56e23869f9ff2791c1789088259f95c4b610ead2ec99d44160b31a52ffbd"
+      "bytes": 2609384,
+      "sha256": "7adc4d3b1f0d8694efaae2da119ec6dd4b43a3a226e01feda6e5d736fef4b612"
     },
     {
       "path": "public/models/3d-redesign/patient-seated.glb",
-      "bytes": 1592148,
-      "sha256": "1a80af38b73d2ad5a92858402fd9424983e31e8c23e1743efbab9d1bd91dd03e"
+      "bytes": 2314748,
+      "sha256": "dfb74a9a83761be7828c3ec4a1e511be41ce427e60edb9b1b6370b2a3472aeb3"
     },
     {
       "path": "public/models/3d-redesign/room-people.glb",
-      "bytes": 3299024,
-      "sha256": "ac132f3321a968962def9cbabdc18d898d6e1605fcee9094609fa886cec3531f"
+      "bytes": 6356872,
+      "sha256": "60ccb4656e61402895beb7b56e8241b4201a54083384175db80a20dca8948617"
     },
     {
       "path": "public/models/3d-redesign/clinic-static.png",
@@ -122,5 +122,69 @@
       "bytes": 9481,
       "sha256": "8929a48a5360eadc3779e4af196c5148517d9d3b9308b019c359822cc9b8ad0d"
     }
-  ]
+  ],
+  "motion_repair": {
+    "baseline_commit": "fc184f29908f9d84fe4fb2813e8fb532c565759e",
+    "baseline_people_assets": [
+      {
+        "path": "public/models/3d-redesign/physician-seated.glb",
+        "bytes": 1896452,
+        "sha256": "9fdd56e23869f9ff2791c1789088259f95c4b610ead2ec99d44160b31a52ffbd"
+      },
+      {
+        "path": "public/models/3d-redesign/patient-seated.glb",
+        "bytes": 1592148,
+        "sha256": "1a80af38b73d2ad5a92858402fd9424983e31e8c23e1743efbab9d1bd91dd03e"
+      },
+      {
+        "path": "public/models/3d-redesign/room-people.glb",
+        "bytes": 3299024,
+        "sha256": "ac132f3321a968962def9cbabdc18d898d6e1605fcee9094609fa886cec3531f"
+      }
+    ],
+    "task": "t_6ce27686",
+    "method": "Existing weighted rigs rebound to evaluated accepted seated surfaces, including the patient shirt corrective. No new anatomy/materials. Scroll-seeked authored clips; original six cast, no legacy duplicates.",
+    "restored": "All six have articulated head/neck/forearm gestures. Patient walks from internal arrival through reception approach and consultation doorway, plants feet and sits for .43-.60, stands .60-.63 and walks onward through central circulation.",
+    "limits": "Closed accepted perimeter has no exterior opening: arrival and departure remain inside clinic circulation. Check-in gesture is at the reception approach, not a desk transaction. Other seated staff retain lap/interaction gestures, not full keyboard-typing choreography. Stylized procedural gait, not motion capture.",
+    "editable_sources": [
+      {
+        "path": "assets/clinic-motion/local/physician-seated-motion.blend",
+        "bytes": 32920943,
+        "sha256": "793f4daeb15b211744deb525a21cbd0559de6848804b0704b8a545196a33ce25"
+      },
+      {
+        "path": "assets/clinic-motion/local/patient-seated-motion.blend",
+        "bytes": 32657227,
+        "sha256": "c9003cae050e5c390c12a32f27bb3259af6b08408e6bfc189a265fbf689c8bca"
+      },
+      {
+        "path": "assets/clinic-motion/local/room-people-motion.blend",
+        "bytes": 148412422,
+        "sha256": "6592654b1afed88cb1225ea118c1f0f4c648b4f42bab87602e8af4510d3a4ddf"
+      }
+    ],
+    "recipes": [
+      {
+        "path": "assets/clinic-motion/export_motion.py",
+        "bytes": 3978,
+        "sha256": "1af4f77b1ab95e6d086c3af7b1ec66f0750302d75cd4b8439f6fbb43d23a7a31"
+      },
+      {
+        "path": "assets/clinic-motion/patient_path.py",
+        "bytes": 5418,
+        "sha256": "b92a105118247368d76c24404dc9c2feda1e46f75d06bb4866c0e0679f7411a3"
+      },
+      {
+        "path": "assets/clinic-motion/optimize.mjs",
+        "bytes": 2280,
+        "sha256": "aeb698422398ea56ec764d871badab8b2f1ae6e873ba06f3d2219023a12548f1"
+      },
+      {
+        "path": "assets/clinic-motion/verify_bind.py",
+        "bytes": 2042,
+        "sha256": "bad2245fabe86eb01db2e9eb09bce9c2049ef9986370f2c78ea9d3e013701931"
+      }
+    ],
+    "original_source_hashes": "source_hashes below remain the unchanged donor baselines; new editable hashes are separate above."
+  }
 }

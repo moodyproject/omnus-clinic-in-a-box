@@ -4,7 +4,7 @@ import { useFrame } from '@react-three/fiber'
 import { RoundedBox } from '@react-three/drei'
 import { getMaterials } from '../materials'
 import { DEVICE, SLEEVE_BASE } from '../constants'
-import { smoothedState, shellOpen, capLift } from '../../scroll/journey'
+import { smoothedState, shellOpen, capLift, swin } from '../../scroll/journey'
 import {
   makeContactShadowTexture,
   makeEngravingTexture,
@@ -77,7 +77,7 @@ function CeilingRibs({ count }: { count: number }) {
   )
 }
 
-export function Appliance({ quality }: { quality: Quality }) {
+export function Appliance({ quality, mobile = false }: { quality: Quality; mobile?: boolean }) {
   const mats = getMaterials()
   const fontsReady = useFontsReady()
   const sleeveRef = useRef<THREE.Group>(null)
@@ -112,7 +112,10 @@ export function Appliance({ quality }: { quality: Quality }) {
     const extra = capLift(p)
 
     if (sleeveRef.current) {
-      sleeveRef.current.position.y = open * DEVICE.lift + extra * DEVICE.overheadLift
+      // The portrait overhead camera rises above the normal sleeve underside.
+      // Keep that panel above its sightline, then restore the original reveal.
+      const portraitClearance = mobile ? 1.3 * swin(p, 0.74, 0.79) * (1 - swin(p, 0.89, 0.94)) : 0
+      sleeveRef.current.position.y = open * DEVICE.lift + extra * DEVICE.overheadLift + portraitClearance
       sleeveRef.current.rotation.y = 0.03 * open
     }
 

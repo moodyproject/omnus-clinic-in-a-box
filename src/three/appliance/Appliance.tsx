@@ -2,6 +2,7 @@ import * as THREE from 'three'
 import { useEffect, useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { RoundedBox } from '@react-three/drei'
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js'
 import { getMaterials } from '../materials'
 import { DEVICE, SLEEVE_BASE } from '../constants'
 import { smoothedState, shellOpen, capLift, swin } from '../../scroll/journey'
@@ -15,20 +16,36 @@ import type { Quality } from '../../hooks/useMediaFlags'
 
 const HALF = DEVICE.w / 2
 
+/** Small machined details share a restrained bevel, not razor-edged strips. */
+function ExteriorDetail({ name, size, position, material, radius = 0.001 }: {
+  name: string
+  size: [number, number, number]
+  position: [number, number, number]
+  material: THREE.Material
+  radius?: number
+}) {
+  const [w, h, d] = size
+  const geometry = useMemo(() => new RoundedBoxGeometry(w, h, d, 1, radius), [w, h, d, radius])
+  useEffect(() => () => geometry.dispose(), [geometry])
+  return <mesh name={name} position={position} geometry={geometry} material={material} dispose={null} />
+}
+
 /**
  * a precise ventilation band: fine vertical fins inside a recessed channel.
  * used on the sleeve's side and rear faces, never the front.
  */
-function VentBand({ count, width }: { count: number; width: number }) {
+function VentBand({ count, width, trim }: { count: number; width: number; trim: THREE.Material }) {
   const mats = getMaterials()
   const dummy = useMemo(() => new THREE.Object3D(), [])
+  const geometry = useMemo(() => new RoundedBoxGeometry(0.01, 0.196, 0.008, 1, 0.003), [])
+  useEffect(() => () => geometry.dispose(), [geometry])
 
   const setLayout = (mesh: THREE.InstancedMesh | null) => {
     if (!mesh) return
     const span = width - 0.06
     for (let i = 0; i < count; i++) {
       const x = -span / 2 + (span / (count - 1)) * i
-      dummy.position.set(x, 0, 0)
+      dummy.position.set(x, 0, 0.005)
       dummy.rotation.set(0, 0, 0)
       dummy.scale.set(1, 1, 1)
       dummy.updateMatrix()
@@ -39,18 +56,9 @@ function VentBand({ count, width }: { count: number; width: number }) {
 
   return (
     <group>
-      <mesh position={[0, 0, -0.008]} material={mats.inset}>
-        <boxGeometry args={[width, 0.24, 0.012]} />
-      </mesh>
-      <instancedMesh ref={setLayout} args={[undefined, undefined, count]} material={mats.fin}>
-        <boxGeometry args={[0.011, 0.2, 0.012]} />
-      </instancedMesh>
-      {/* channel frame lines */}
-      {[-0.125, 0.125].map((y) => (
-        <mesh key={y} position={[0, y, -0.002]} material={mats.shellTrim}>
-          <boxGeometry args={[width, 0.006, 0.006]} />
-        </mesh>
-      ))}
+      <ExteriorDetail name="exterior-vent-frame" size={[width, 0.24, 0.008]} position={[0, 0, -0.004]} material={trim} radius={0.004} />
+      <ExteriorDetail name="exterior-vent-inset" size={[width - 0.012, 0.224, 0.003]} position={[0, 0, 0.001]} material={mats.inset} />
+      <instancedMesh name="exterior-vent-fins" ref={setLayout} args={[geometry, mats.fin, count]} dispose={null} />
     </group>
   )
 }
@@ -79,6 +87,13 @@ function CeilingRibs({ count }: { count: number }) {
 
 export function Appliance({ quality, mobile = false, reducedMotion = false }: { quality: Quality; mobile?: boolean; reducedMotion?: boolean }) {
   const mats = getMaterials()
+  const exteriorTrim = useMemo(() => {
+    const material = mats.shellTrim.clone()
+    material.color.set('#42474c')
+    material.roughness = 0.5
+    return material
+  }, [mats])
+  useEffect(() => () => exteriorTrim.dispose(), [exteriorTrim])
   const fontsReady = useFontsReady()
   const sleeveRef = useRef<THREE.Group>(null)
   const ledMat = useMemo(
@@ -159,12 +174,12 @@ export function Appliance({ quality, mobile = false, reducedMotion = false }: { 
       >
         <boxGeometry args={[0.05, 0.006, 0.004]} />
       </mesh>
-      <mesh
+      <ExteriorDetail
+        name="exterior-seam"
         position={[0, DEVICE.footH + 0.03, DEVICE.d / 2 - 0.0245]}
-        material={mats.shellTrim}
-      >
-        <boxGeometry args={[DEVICE.w - 0.14, 0.0035, 0.002]} />
-      </mesh>
+        material={exteriorTrim}
+        size={[DEVICE.w - 0.14, 0.0035, 0.002]}
+      />
 
       {/* the one-piece anodized sleeve, lifted by the journey */}
       <group ref={sleeveRef}>
@@ -189,26 +204,8 @@ export function Appliance({ quality, mobile = false, reducedMotion = false }: { 
           <CeilingRibs count={quality.tier === 'high' ? 15 : 9} />
         </group>
 
-        {/* machined edge highlights along the top chamfer: a quiet bevel
-            catch-light that separates the sleeve from the backdrop */}
-        {[
-          { pos: [0, DEVICE.sleeveH - 0.008, DEVICE.d / 2 - 0.022] as const, size: [DEVICE.w - 0.16, 0.004, 0.004] as const },
-          { pos: [DEVICE.w / 2 - 0.022, DEVICE.sleeveH - 0.008, 0] as const, size: [0.004, 0.004, DEVICE.d - 0.16] as const },
-          { pos: [-(DEVICE.w / 2 - 0.022), DEVICE.sleeveH - 0.008, 0] as const, size: [0.004, 0.004, DEVICE.d - 0.16] as const },
-        ].map((edge, i) => (
-          <mesh
-            key={i}
-            position={[edge.pos[0], SLEEVE_BASE + edge.pos[1], edge.pos[2]]}
-            material={mats.fin}
-          >
-            <boxGeometry args={edge.size as unknown as [number, number, number]} />
-          </mesh>
-        ))}
-
-        {/* panel-gap reveal where the sleeve meets the chassis */}
-        <mesh position={[0, SLEEVE_BASE + 0.012, DEVICE.d / 2 + 0.0045]} material={mats.inset}>
-          <boxGeometry args={[DEVICE.w - 0.1, 0.0035, 0.002]} />
-        </mesh>
+        {/* Real rounded bevels and the chassis junction supply the edge
+            highlights/shadow gap, without disconnected overlay bars. */}
 
         {/* front face: clean fascia with restrained instrumentation */}
         <group position={[0, 0, DEVICE.d / 2 + 0.004]}>
@@ -241,9 +238,8 @@ export function Appliance({ quality, mobile = false, reducedMotion = false }: { 
             <cylinderGeometry args={[0.013, 0.013, 0.003, 18]} />
           </mesh>
           {/* machined horizontal reveal across the fascia */}
-          <mesh position={[0, SLEEVE_BASE + DEVICE.sleeveH - 0.24, 0]} material={mats.shellTrim}>
-            <boxGeometry args={[DEVICE.w - 0.1, 0.004, 0.003]} />
-          </mesh>
+          <ExteriorDetail name="exterior-seam" position={[0, SLEEVE_BASE + DEVICE.sleeveH - 0.24, -0.003]}
+            material={exteriorTrim} size={[DEVICE.w - 2 * (DEVICE.radius + 0.035), 0.0035, 0.002]} />
           {/* engraved wordmark, lower right */}
           <mesh position={[0.44, SLEEVE_BASE + 0.085, 0.001]}>
             <planeGeometry args={[0.17, 0.053]} />
@@ -256,40 +252,37 @@ export function Appliance({ quality, mobile = false, reducedMotion = false }: { 
           position={[DEVICE.w / 2 + 0.004, SLEEVE_BASE + 0.27, 0]}
           rotation-y={Math.PI / 2}
         >
-          <VentBand count={finCount} width={0.96} />
+          <VentBand count={finCount} width={0.96} trim={exteriorTrim} />
         </group>
         <group
           position={[-(DEVICE.w / 2 + 0.004), SLEEVE_BASE + 0.27, 0]}
           rotation-y={-Math.PI / 2}
         >
-          <VentBand count={finCount} width={0.96} />
+          <VentBand count={finCount} width={0.96} trim={exteriorTrim} />
         </group>
         <group position={[0, SLEEVE_BASE + 0.27, -(DEVICE.d / 2 + 0.004)]} rotation-y={Math.PI}>
-          <VentBand count={finCount} width={0.96} />
+          <VentBand count={finCount} width={0.96} trim={exteriorTrim} />
         </group>
 
         {/* recessed port field low on the rear face */}
         <group position={[0.3, SLEEVE_BASE + 0.09, -(DEVICE.d / 2 + 0.004)]} rotation-y={Math.PI}>
-          <mesh material={mats.inset}>
-            <boxGeometry args={[0.36, 0.07, 0.012]} />
-          </mesh>
+          <ExteriorDetail name="exterior-port-field" material={exteriorTrim} size={[0.36, 0.07, 0.006]} position={[0, 0, 0]} radius={0.003} />
           {[-0.13, -0.065, 0, 0.065].map((x) => (
-            <mesh key={x} position={[x, 0, -0.007]} material={mats.bezel}>
-              <boxGeometry args={[0.044, 0.015, 0.006]} />
-            </mesh>
+            <ExteriorDetail name="exterior-port-opening" key={x} position={[x, 0, 0.004]} material={mats.bezel} size={[0.044, 0.015, 0.002]} />
           ))}
-          <mesh position={[0.135, 0, -0.007]} material={mats.bezel}>
-            <cylinderGeometry args={[0.012, 0.012, 0.006, 16]} />
+          <mesh position={[0.135, 0, 0.004]} rotation-x={Math.PI / 2} material={mats.bezel}>
+            <cylinderGeometry args={[0.012, 0.012, 0.002, 20]} />
           </mesh>
         </group>
 
         {/* recessed top vent slot near the rear edge */}
-        <mesh
+        <ExteriorDetail
+          name="exterior-top-slot"
           position={[0, SLEEVE_BASE + DEVICE.sleeveH + 0.0015, -(DEVICE.d / 2 - 0.13)]}
           material={mats.inset}
-        >
-          <boxGeometry args={[0.72, 0.004, 0.035]} />
-        </mesh>
+          size={[0.72, 0.004, 0.035]}
+          radius={0.002}
+        />
       </group>
 
       {/* soft contact shadow under the appliance */}

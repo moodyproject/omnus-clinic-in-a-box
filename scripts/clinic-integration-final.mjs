@@ -23,9 +23,10 @@ try{
   await p.goto(local,{waitUntil:'networkidle0'});await wait(700)
   if(mode==='lost'){await p.$eval('canvas',c=>c.getContext('webgl2').getExtension('WEBGL_lose_context').loseContext());await wait(1200)}
   const result=await p.evaluate(()=>({scenes:document.querySelectorAll('.static-scene').length,canvas:!!document.querySelector('canvas'),image:document.querySelector('.clinic-static-image')?.naturalWidth,overflow:document.documentElement.scrollWidth>innerWidth}))
-  assert.equal(result.scenes,7);assert.equal(result.canvas,false);assert.ok(result.image>0);assert.equal(result.overflow,false)
+  assert.equal(result.scenes,0);assert.equal(result.canvas,mode==='reduced');assert.equal(result.image,undefined);assert.equal(result.overflow,false)
+  if(mode!=='reduced')assert.ok(await p.$('[data-action="retry-3d"]'))
   await p.click('.nav-cta');assert.ok(await p.$('[role="dialog"]'))
   results.push({mode,...result});await p.close()
  }
- console.log('PASS local/live nav equivalence; real reduced-motion, WebGL unavailable and context loss with static image and CTA')
+ console.log('PASS local/live nav equivalence; reduced-motion 3D and honest graphics failure/Retry with CTA')
 }finally{fs.writeFileSync('docs/evidence/clinic-site-integration/decisive-checks.json',JSON.stringify(results,null,2));await browser.close()}

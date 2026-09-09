@@ -55,6 +55,7 @@ function SceneDriver({ onReady, onError }: { onReady?: () => void; onError: (sta
 interface Props {
   quality: Quality
   mobile: boolean
+  reducedMotion: boolean
   active: boolean
   onReady?: () => void
   onError: (stage: SceneFailure) => void
@@ -71,7 +72,7 @@ class SceneBoundary extends Component<{ children: ReactNode; onError: (stage: Sc
  * the pinned webgl scene. rendering pauses (frameloop "never") whenever the
  * journey is off-screen or the tab is hidden.
  */
-export function Experience({ quality, mobile, active, onReady, onError }: Props) {
+export function Experience({ quality, mobile, reducedMotion, active, onReady, onError }: Props) {
   return (
     <div className="journey-canvas" aria-hidden="true">
       <SceneBoundary onError={onError}>
@@ -98,9 +99,9 @@ export function Experience({ quality, mobile, active, onReady, onError }: Props)
         }}
       >
         <Studio quality={quality} />
-        <Appliance quality={quality} mobile={mobile} />
+        <Appliance quality={quality} mobile={mobile} reducedMotion={reducedMotion} />
         <AcceptedClinic onError={onError} />
-        <CameraRig mobile={mobile} />
+        <CameraRig mobile={mobile} reducedMotion={reducedMotion} />
         <SceneDriver onReady={onReady} onError={onError} />
       </Canvas>
       </SceneBoundary>

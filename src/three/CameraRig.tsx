@@ -40,7 +40,7 @@ export function CameraRig({ mobile, reducedMotion = false }: Props) {
   useEffect(() => {
     if (!mobile) return
     const blocks = Array.from(document.querySelectorAll<HTMLElement>('.copy-block'))
-    const controls = Array.from(document.querySelectorAll<HTMLElement>('.nav, .view-static'))
+    const controls = Array.from(document.querySelectorAll<HTMLElement>('.nav'))
     const measure = () => {
       state.top = Math.max(0, ...controls.map(el => el.getBoundingClientRect().bottom)) + 12
       for (const block of blocks) state.copyHeights[block.dataset.scene!] = block.offsetHeight
@@ -67,7 +67,13 @@ export function CameraRig({ mobile, reducedMotion = false }: Props) {
     const dt = Math.min(rawDt, 1 / 20)
 
     // smooth the scroll progress itself so the whole scene shares one motion
-    if (journeyState.snap || !state.initialized) {
+    if (reducedMotion) {
+      // Keep the actual canvas, but change rooms in discrete existing poses.
+      // Shared progress also holds the authored actors, walls and appliance.
+      const range = Object.values(SCENES).find(({ b }) => journeyState.p <= b) ?? SCENES.reveal
+      smoothedState.p = (range.a + range.b) / 2
+      journeyState.snap = false
+    } else if (journeyState.snap || !state.initialized) {
       smoothedState.p = journeyState.p
       journeyState.snap = false
     } else {
@@ -90,7 +96,7 @@ export function CameraRig({ mobile, reducedMotion = false }: Props) {
       const bottom = size.height - (state.copyHeights[scene] ?? 250)
       const center = (state.top + Math.max(state.top, bottom)) / 2
       const offset = size.height / 2 - center
-      state.offsetY = state.initialized ? damp(state.offsetY, offset, 7.5, dt) : offset
+      state.offsetY = state.initialized && !reducedMotion ? damp(state.offsetY, offset, 7.5, dt) : offset
       camera.setViewOffset(size.width, size.height, 0, state.offsetY, size.width, size.height)
     } else if (camera.view?.enabled) camera.clearViewOffset()
 
@@ -103,7 +109,7 @@ export function CameraRig({ mobile, reducedMotion = false }: Props) {
     state.targetPos.y -= state.pointerSmooth.y * strength * 0.6
     state.targetLook.x += state.pointerSmooth.x * strength * 0.35
 
-    if (!state.initialized) {
+    if (!state.initialized || reducedMotion) {
       state.pos.copy(state.targetPos)
       state.look.copy(state.targetLook)
       state.fov = targetFov

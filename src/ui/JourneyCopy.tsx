@@ -8,6 +8,7 @@ gsap.registerPlugin(ScrollTrigger)
 
 interface Props {
   journeyEl: React.RefObject<HTMLElement | null>
+  reducedMotion: boolean
   onBookDemo: () => void
   onWaitlist: () => void
 }
@@ -63,7 +64,7 @@ function CopyBlock({
  * that maps 1:1 onto normalized journey progress. gsap only ever touches dom
  * nodes here, never the three.js scene graph.
  */
-export function JourneyCopy({ journeyEl, onBookDemo, onWaitlist }: Props) {
+export function JourneyCopy({ journeyEl, reducedMotion, onBookDemo, onWaitlist }: Props) {
   const layerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -81,7 +82,7 @@ export function JourneyCopy({ journeyEl, onBookDemo, onWaitlist }: Props) {
                 trigger: journey,
                 start: 'top top',
                 end: 'bottom bottom',
-                scrub: 0.25,
+                scrub: reducedMotion ? true : 0.25,
               },
             },
       )
@@ -96,22 +97,22 @@ export function JourneyCopy({ journeyEl, onBookDemo, onWaitlist }: Props) {
 
         if (scene.id === 'object') {
           gsap.set(el, { autoAlpha: 1, y: 0 })
-          tl.to(el, { autoAlpha: 0, y: -26, duration: fadeOut }, b - span * 0.35)
+          tl.to(el, { autoAlpha: 0, y: reducedMotion ? 0 : -26, duration: fadeOut }, b - span * 0.35)
         } else if (scene.id === 'reveal') {
           tl.fromTo(
             el,
-            { autoAlpha: 0, y: 30 },
+            { autoAlpha: 0, y: reducedMotion ? 0 : 30 },
             { autoAlpha: 1, y: 0, duration: fadeIn * 1.6 },
             a + span * 0.45,
           )
         } else {
           tl.fromTo(
             el,
-            { autoAlpha: 0, y: 26 },
+            { autoAlpha: 0, y: reducedMotion ? 0 : 26 },
             { autoAlpha: 1, y: 0, duration: fadeIn },
             a + span * 0.12,
           )
-          tl.to(el, { autoAlpha: 0, y: -22, duration: fadeOut }, b - span * 0.16)
+          tl.to(el, { autoAlpha: 0, y: reducedMotion ? 0 : -22, duration: fadeOut }, b - span * 0.16)
         }
       }
 
@@ -121,7 +122,7 @@ export function JourneyCopy({ journeyEl, onBookDemo, onWaitlist }: Props) {
     }, layer)
 
     return () => ctx.revert()
-  }, [journeyEl])
+  }, [journeyEl, reducedMotion])
 
   return (
     <div className="copy-layer" ref={layerRef}>

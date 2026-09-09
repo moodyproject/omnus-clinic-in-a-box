@@ -5,7 +5,7 @@ const require = createRequire(process.env.PLAYWRIGHT_PACKAGE || '/Users/moud/.he
 const { chromium, webkit } = require('playwright')
 const base = process.env.BASE_URL || 'http://127.0.0.1:4196/'
 const phase = process.env.PHASE || 'baseline'
-const out = `docs/evidence/mobile-recovery/${phase}`
+const out = process.env.OUT || `docs/evidence/mobile-recovery/${phase}`
 fs.mkdirSync(out, { recursive: true })
 const results = []
 for (const [engine, launcher] of Object.entries({ chromium, webkit })) {
@@ -53,19 +53,20 @@ for (const [engine, launcher] of Object.entries({ chromium, webkit })) {
      await ready()
      await page.locator('canvas').evaluate(c => c.getContext('webgl2').getExtension('WEBGL_lose_context').loseContext())
     }
-    if (mode === 'normal') {
+    if (['normal', 'reduced', 'static'].includes(mode)) {
      await ready()
      if (!process.env.PRODUCTION) row.render = await page.evaluate(() => { const s = window.__omnus; return { calls: s.gl.info.render.calls, triangles: s.gl.info.render.triangles, memory: s.gl.info.memory } })
-    } else await page.locator('.static-journey').waitFor()
-    row.before = await page.locator('.static-note').textContent({ timeout: 500 }).catch(() => null)
+    } else await page.locator('.scene-error').waitFor()
+    row.before = await page.locator('.scene-error').textContent({ timeout: 500 }).catch(() => null)
     await page.screenshot({ path: `${out}/${engine}-${mode}-before.png` })
-    if (mode !== 'normal') {
-     const expected = { reduced: 'reduced-motion', static: 'explicit-static', asset: 'asset-load', exhausted: 'asset-load', 'no-webgl2': 'no-webgl2', 'capability-recovery': 'no-webgl2', lost: 'context-lost', renderer: 'renderer-init', timeout: 'asset-timeout' }[mode]
+    if (!['normal', 'reduced', 'static'].includes(mode)) {
+     const expected = { asset: 'asset-load', exhausted: 'asset-load', 'no-webgl2': 'no-webgl2', 'capability-recovery': 'no-webgl2', lost: 'context-lost', renderer: 'renderer-init', timeout: 'asset-timeout' }[mode]
      assert.equal(await page.locator('[data-scene-reason]').getAttribute('data-scene-reason'), expected)
-     assert.equal(await page.locator('.static-scene').count(), 7)
+     assert.equal(await page.locator('.static-scene, .clinic-static-image, .device-illustration').count(), 0)
+     assert.equal(await page.locator('.copy-block').count(), 8)
      assert.equal(await page.locator('#contact').count(), 1)
-     if (['reduced', 'static', 'no-webgl2', 'capability-recovery'].includes(mode)) assert.equal(assets.size, 0)
-     const selector = ['reduced', 'static'].includes(mode) ? '[data-action="enable-3d"]' : '[data-action="retry-3d"]'
+     if (['no-webgl2', 'capability-recovery'].includes(mode)) assert.equal(assets.size, 0)
+     const selector = '[data-action="retry-3d"]'
      assert.equal(await page.locator(selector).count(), 1, `${mode} must offer explicit in-page recovery`)
      if (['asset', 'timeout'].includes(mode)) await page.unroute('**/patient-seated.glb')
      if (['renderer', 'capability-recovery'].includes(mode)) await page.evaluate(() => window.restoreContext())
@@ -77,19 +78,14 @@ for (const [engine, launcher] of Object.entries({ chromium, webkit })) {
       assert.equal(await page.locator('[data-action="retry-3d"]').count(), 0)
       await page.waitForTimeout(1000)
       assert.equal(await page.locator('canvas').count(), 0)
-      assert.equal(await page.locator('.static-scene').count(), 7)
+      assert.equal(await page.locator('.static-scene').count(), 0)
      } else {
       await ready()
       if (!process.env.PRODUCTION && !['reduced', 'static'].includes(mode)) assert.equal(await page.evaluate(() => window.__omnus.gl.getPixelRatio()), 1)
      }
      await page.screenshot({ path: `${out}/${engine}-${mode}-after.png` })
     }
-    if (!['no-webgl2', 'exhausted'].includes(mode)) {
-     assert.equal(await page.locator('[data-action="view-static"]').count(), 1)
-     await page.locator('[data-action="view-static"]').click()
-     await page.locator('[data-scene-reason="explicit-static"]').waitFor()
-     assert.equal(await page.locator('canvas').count(), 0)
-    }
+    assert.equal(await page.locator('[data-action="view-static"], [data-action="enable-3d"], .static-journey').count(), 0)
     await page.locator('.nav-cta').click()
     await page.locator('[role="dialog"]').waitFor()
     await page.keyboard.press('Escape')

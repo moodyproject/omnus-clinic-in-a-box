@@ -77,7 +77,7 @@ function CeilingRibs({ count }: { count: number }) {
   )
 }
 
-export function Appliance({ quality, mobile = false }: { quality: Quality; mobile?: boolean }) {
+export function Appliance({ quality, mobile = false, reducedMotion = false }: { quality: Quality; mobile?: boolean; reducedMotion?: boolean }) {
   const mats = getMaterials()
   const fontsReady = useFontsReady()
   const sleeveRef = useRef<THREE.Group>(null)
@@ -120,7 +120,7 @@ export function Appliance({ quality, mobile = false }: { quality: Quality; mobil
     }
 
     // quiet breathing status light
-    ledMat.emissiveIntensity = 1.35 + Math.sin(clock.elapsedTime * 2.1) * 0.35
+    ledMat.emissiveIntensity = reducedMotion ? 1.35 : 1.35 + Math.sin(clock.elapsedTime * 2.1) * 0.35
   })
 
   const shadows = quality.shadows

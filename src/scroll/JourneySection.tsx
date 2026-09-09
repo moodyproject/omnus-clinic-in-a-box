@@ -7,13 +7,17 @@ import { ScrollCue, SkipTour } from '../ui/Sections'
 import { journeyState, JOURNEY_VH_DESKTOP, JOURNEY_VH_MOBILE, POSE } from './journey'
 import type { Quality } from '../hooks/useMediaFlags'
 import { hideBoot } from '../lib/boot'
-import type { SceneFailure } from '../lib/sceneFailure'
+import { sceneFailureNotes, type SceneFailure } from '../lib/sceneFailure'
 
 gsap.registerPlugin(ScrollTrigger)
 
 interface Props {
   quality: Quality
   mobile: boolean
+  reducedMotion: boolean
+  failure: SceneFailure | null
+  attempts: number
+  onRetry: () => void
   onError: (stage: SceneFailure) => void
   onBookDemo: () => void
   onWaitlist: () => void
@@ -24,7 +28,7 @@ interface Props {
  * a sticky viewport plus one ScrollTrigger that writes normalized progress
  * into journeyState for the r3f loop, and drives the dom copy timeline.
  */
-export function Journey({ quality, mobile, onError, onBookDemo, onWaitlist }: Props) {
+export function Journey({ quality, mobile, reducedMotion, failure, attempts, onRetry, onError, onBookDemo, onWaitlist }: Props) {
   const sectionRef = useRef<HTMLElement>(null)
   const viewportRef = useRef<HTMLDivElement>(null)
   const [cueHidden, setCueHidden] = useState(false)
@@ -144,14 +148,23 @@ export function Journey({ quality, mobile, onError, onBookDemo, onWaitlist }: Pr
       aria-label="the omnus journey: from appliance to clinic and back"
     >
       <div className="journey-viewport" ref={viewportRef}>
-        <Experience
+        {failure ? (
+          <div className="scene-error" role="alert" data-scene-reason={failure}>
+            <p>{sceneFailureNotes[failure]}</p>
+            {attempts < 2
+              ? <button className="btn btn-secondary" data-action="retry-3d" onClick={onRetry}>Retry 3D ({2 - attempts} left)</button>
+              : <p>Both recovery attempts have been used. Try reopening this page after checking your connection or browser graphics settings.</p>}
+          </div>
+        ) : <Experience
+          key={attempts}
           quality={quality}
           mobile={mobile}
+          reducedMotion={reducedMotion}
           active={inView && tabVisible}
           onReady={hideBoot}
           onError={onError}
-        />
-        <JourneyCopy journeyEl={sectionRef} onBookDemo={onBookDemo} onWaitlist={onWaitlist} />
+        />}
+        <JourneyCopy journeyEl={sectionRef} reducedMotion={reducedMotion} onBookDemo={onBookDemo} onWaitlist={onWaitlist} />
         <ScrollCue hidden={cueHidden} />
       </div>
       <SkipTour onSkip={skip} hidden={skipHidden} />

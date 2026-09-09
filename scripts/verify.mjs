@@ -186,15 +186,15 @@ try {
     report(`no horizontal overflow at ${w}`, !overflow)
   }
 
-  // --- static fallback + reduced motion
+  // --- legacy static links + reduced motion both keep the real canvas
   await page.setViewport({ width: 1440, height: 900, deviceScaleFactor: 1 })
   await page.goto(`${base}/?static=1`, { waitUntil: 'networkidle0' })
-  const staticOk = await page.evaluate(() => document.querySelectorAll('.static-scene').length >= 7)
-  report('static fallback renders all scenes', staticOk)
+  const staticOk = await page.evaluate(() => !!document.querySelector('canvas') && !document.querySelector('.static-journey'))
+  report('legacy static link enters 3D', staticOk)
   await page.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }])
   await page.goto(base + '/', { waitUntil: 'networkidle0' })
-  const reducedOk = await page.evaluate(() => Boolean(document.querySelector('.static-journey')))
-  report('reduced motion serves static journey', reducedOk)
+  const reducedOk = await page.evaluate(() => !!document.querySelector('canvas') && !document.querySelector('.static-journey'))
+  report('reduced motion retains actual 3D', reducedOk)
   await page.emulateMediaFeatures([])
 
   // --- console errors across a full scroll

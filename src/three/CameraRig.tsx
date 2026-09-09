@@ -44,7 +44,7 @@ export function CameraRig({ mobile, reducedMotion = false }: Props) {
   useEffect(() => {
     if (!mobile) return
     const blocks = Array.from(document.querySelectorAll<HTMLElement>('.copy-block'))
-    const controls = Array.from(document.querySelectorAll<HTMLElement>('.nav, .motion-preference'))
+    const controls = Array.from(document.querySelectorAll<HTMLElement>('.nav'))
     const measure = () => {
       state.top = Math.max(0, ...controls.map(el => el.getBoundingClientRect().bottom)) + 12
       for (const block of blocks) state.copyHeights[block.dataset.scene!] = block.offsetHeight
@@ -54,7 +54,7 @@ export function CameraRig({ mobile, reducedMotion = false }: Props) {
     for (const element of [...blocks, ...controls]) observer.observe(element)
     measure()
     return () => observer.disconnect()
-  }, [mobile, reducedMotion, state, invalidate])
+  }, [mobile, state, invalidate])
 
   useEffect(() => {
     if (mobile || reducedMotion) return

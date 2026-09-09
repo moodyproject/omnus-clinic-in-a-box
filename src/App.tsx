@@ -5,7 +5,6 @@ import { Conversion, Footer } from './ui/Sections'
 import { DemoDialog, WaitlistDialog } from './ui/forms/FormDialogs'
 import {
   useIsMobile,
-  usePrefersReducedMotion,
   useQuality,
   checkWebGL2,
 } from './hooks/useMediaFlags'
@@ -22,11 +21,11 @@ const NAV_PROGRESS: Record<string, number> = {
 }
 
 export default function App() {
-  const prefersReducedMotion = usePrefersReducedMotion()
-  const [fullMotion, setFullMotion] = useState(false)
+  // Locked product contract: full scroll-driven tour on every device.
+  // No visitor motion switch or OS-preference-selected still poses.
+  const reducedMotion = false
   const [webgl, setWebgl] = useState(checkWebGL2)
   const mobile = useIsMobile()
-  const reducedMotion = prefersReducedMotion && !(mobile && fullMotion)
   const quality = useQuality()
   const [dialog, setDialog] = useState<Dialog>(null)
   const [failure, setFailure] = useState<SceneFailure | null>(null)
@@ -88,7 +87,6 @@ export default function App() {
           failure={sceneFailure}
           attempts={attempts}
           onRetry={retry3D}
-          onToggleMotion={mobile && prefersReducedMotion ? () => setFullMotion(value => !value) : undefined}
           onError={onSceneError}
           onBookDemo={() => setDialog('demo')}
           onWaitlist={() => setDialog('waitlist')}

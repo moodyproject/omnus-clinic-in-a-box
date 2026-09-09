@@ -30,6 +30,9 @@ jobs:
       - name: install dependencies
         run: npm ci
 
+      - name: enforce always-on tour motion
+        run: node scripts/clinic-motion-contract.mjs
+
       - name: lint
         run: npm run lint
 

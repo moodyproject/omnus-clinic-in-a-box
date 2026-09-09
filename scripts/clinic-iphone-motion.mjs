@@ -4,23 +4,27 @@ import {createRequire} from 'node:module'
 const {webkit}=createRequire('/Users/moud/.hermes/hermes-agent/package.json')('playwright')
 const browser=await webkit.launch({headless:true})
 const out='docs/evidence/iphone-safari';fs.mkdirSync(out,{recursive:true})
+const base=process.env.BASE_URL||'http://127.0.0.1:4198/'
+const rows=[]
 try {
- const page=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true,deviceScaleFactor:3,reducedMotion:'reduce'})
- await page.goto('http://127.0.0.1:4198/',{waitUntil:'networkidle'})
- await page.waitForFunction(()=>window.__omnus?.scene.getObjectByName('room-people'))
- const button=page.locator('[data-action="toggle-motion"]')
- assert.equal(await button.count(),1,'reduced-motion phone needs an explicit full-motion control')
- const sample=async p=>{await page.evaluate(p=>{const e=document.querySelector('.journey');scrollTo(0,e.offsetTop+(e.offsetHeight-innerHeight)*p)},p);await page.waitForTimeout(1400);return page.evaluate(()=>{const a=[];window.__omnus.scene.getObjectByName('accepted-clinic').traverse(n=>{if(n.isBone)a.push(...n.quaternion.toArray())});return a})}
- const error=(a,b)=>Math.max(...a.map((v,i)=>Math.abs(v-b[i])))
- const held=error(await sample(.3),await sample(.34));assert.equal(held,0)
- await button.click();assert.equal(await button.getAttribute('aria-pressed'),'true')
- const moving=error(await sample(.3),await sample(.34));assert.ok(moving>.05,'explicit full motion must animate actual character bones')
- assert.equal(await page.evaluate(()=>matchMedia('(prefers-reduced-motion: reduce)').matches),true,'do not change or lie about system preference')
- await button.click();assert.equal(await button.getAttribute('aria-pressed'),'false')
- const heldAgain=error(await sample(.3),await sample(.34));assert.equal(heldAgain,0)
- const desktop=await browser.newPage({viewport:{width:1440,height:900},reducedMotion:'reduce'})
- await desktop.goto('http://127.0.0.1:4198/',{waitUntil:'networkidle'})
- assert.equal(await desktop.locator('[data-action="toggle-motion"]').count(),0,'desktop controls unchanged')
- const result={held,moving,heldAgain,systemPreferencePreserved:true,desktopControlAbsent:true}
- fs.writeFileSync(`${out}/motion-control.json`,JSON.stringify(result,null,2));console.log(result)
+ for(const width of [390,1440]) for(const reducedMotion of ['reduce','no-preference']) {
+  const page=await browser.newPage({viewport:{width,height:width===390?844:900},isMobile:width===390,hasTouch:width===390,deviceScaleFactor:width===390?3:1,reducedMotion})
+  const errors=[];page.on('pageerror',e=>errors.push(String(e)))
+  await page.addInitScript(()=>{window.__qaRoots=new Set();window.__REACT_DEVTOOLS_GLOBAL_HOOK__={supportsFiber:true,inject:()=>1,onCommitFiberRoot:(_id,root)=>window.__qaRoots.add(root),onCommitFiberUnmount:()=>{},onPostCommitFiberRoot:()=>{}}})
+  await page.goto(base,{waitUntil:'networkidle'})
+  await page.waitForFunction(()=>{
+   if(window.__omnus?.scene.getObjectByName('room-people')){window.__scene=window.__omnus;return true}
+   for(const root of window.__qaRoots){const stack=[root.current],seen=new Set();while(stack.length){const f=stack.pop();if(!f||seen.has(f))continue;seen.add(f);const store=f.memoizedProps?.value;if(store?.getState){const s=store.getState();if(s.scene?.getObjectByName('room-people')){window.__scene=s;return true}}stack.push(f.child,f.sibling)}}return false
+  })
+  assert.equal(await page.locator('[data-action="toggle-motion"],.motion-preference,[data-action="enable-3d"]').count(),0,'no visitor motion switch')
+  const sample=async p=>{await page.evaluate(p=>{const e=document.querySelector('.journey');scrollTo(0,e.offsetTop+(e.offsetHeight-innerHeight)*p)},p);await page.waitForTimeout(1400);return page.evaluate(()=>{const a=[];window.__scene.scene.getObjectByName('accepted-clinic').traverse(n=>{if(n.isBone)a.push(...n.quaternion.toArray())});return a})}
+  const a=await sample(.3),b=await sample(.34)
+  const motion=Math.max(...a.map((v,i)=>Math.abs(v-b[i])))
+  assert.ok(motion>.05,'full motion must run automatically, including under OS reduced motion')
+  assert.deepEqual(errors,[])
+  rows.push({width,reducedMotion,motion,controls:0,errors})
+  fs.writeFileSync(`${out}/${process.argv[2]||'always-on'}.json`,JSON.stringify({base,rows},null,2))
+  await page.close()
+ }
+ console.log(JSON.stringify(rows))
 }finally{await browser.close()}

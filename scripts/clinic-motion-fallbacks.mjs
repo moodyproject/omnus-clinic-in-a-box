@@ -18,4 +18,4 @@ try{
   await page.click('.nav-cta');assert.ok(await page.$('[role="dialog"]'));results.push({mode,...state,glbs});await page.close()
  }
  console.log('PASS',results)
-}finally{fs.writeFileSync('docs/evidence/clinic-motion/production-fallbacks.json',JSON.stringify(results,null,2));await browser.close()}
+}finally{fs.writeFileSync(process.env.EVIDENCE_OUT||'docs/evidence/clinic-motion/production-fallbacks.json',JSON.stringify(results,null,2));await browser.close()}

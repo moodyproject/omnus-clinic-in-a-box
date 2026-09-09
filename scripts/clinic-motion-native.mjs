@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import puppeteer from 'puppeteer-core'
 const base=process.argv[2]||'http://127.0.0.1:4190/'
-const out='docs/evidence/clinic-motion/native';fs.mkdirSync(out,{recursive:true})
+const out=process.env.EVIDENCE_OUT||'docs/evidence/clinic-motion/native';fs.mkdirSync(out,{recursive:true})
 const browser=await puppeteer.launch({executablePath:'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',headless:true})
 const wait=ms=>new Promise(r=>setTimeout(r,ms));const reports=[]
 try{

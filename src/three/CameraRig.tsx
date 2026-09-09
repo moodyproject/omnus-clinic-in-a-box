@@ -19,6 +19,7 @@ interface Props {
 export function CameraRig({ mobile, reducedMotion = false }: Props) {
   const camera = useThree((s) => s.camera) as THREE.PerspectiveCamera
   const size = useThree((s) => s.size)
+  const invalidate = useThree((s) => s.invalidate)
 
   const state = useMemo(
     () => ({
@@ -44,12 +45,13 @@ export function CameraRig({ mobile, reducedMotion = false }: Props) {
     const measure = () => {
       state.top = Math.max(0, ...controls.map(el => el.getBoundingClientRect().bottom)) + 12
       for (const block of blocks) state.copyHeights[block.dataset.scene!] = block.offsetHeight
+      invalidate()
     }
     const observer = new ResizeObserver(measure)
     for (const element of [...blocks, ...controls]) observer.observe(element)
     measure()
     return () => observer.disconnect()
-  }, [mobile, state])
+  }, [mobile, state, invalidate])
 
   useEffect(() => {
     if (mobile || reducedMotion) return
@@ -58,10 +60,11 @@ export function CameraRig({ mobile, reducedMotion = false }: Props) {
         (e.clientX / window.innerWidth) * 2 - 1,
         (e.clientY / window.innerHeight) * 2 - 1,
       )
+      invalidate()
     }
     window.addEventListener('pointermove', onMove, { passive: true })
     return () => window.removeEventListener('pointermove', onMove)
-  }, [mobile, reducedMotion, state])
+  }, [mobile, reducedMotion, state, invalidate])
 
   useFrame((_, rawDt) => {
     const dt = Math.min(rawDt, 1 / 20)
@@ -78,8 +81,10 @@ export function CameraRig({ mobile, reducedMotion = false }: Props) {
       journeyState.snap = false
     } else {
       smoothedState.p = damp(smoothedState.p, journeyState.p, 7.5, dt)
+      if (Math.abs(smoothedState.p - journeyState.p) < 1e-8) smoothedState.p = journeyState.p
     }
     const p = smoothedState.p
+    let offsetPending = false
 
     const keys = mobile ? KEYS_MOBILE : KEYS_DESKTOP
     let targetFov = samplePath(keys, p, state.targetPos, state.targetLook)
@@ -97,6 +102,8 @@ export function CameraRig({ mobile, reducedMotion = false }: Props) {
       const center = (state.top + Math.max(state.top, bottom)) / 2
       const offset = size.height / 2 - center
       state.offsetY = state.initialized && !reducedMotion ? damp(state.offsetY, offset, 7.5, dt) : offset
+      offsetPending = Math.abs(state.offsetY - offset) > 0.01
+      if (!offsetPending) state.offsetY = offset
       camera.setViewOffset(size.width, size.height, 0, state.offsetY, size.width, size.height)
     } else if (camera.view?.enabled) camera.clearViewOffset()
 
@@ -118,6 +125,22 @@ export function CameraRig({ mobile, reducedMotion = false }: Props) {
       dampV3(state.pos, state.targetPos, 5.5, dt)
       dampV3(state.look, state.targetLook, 5.5, dt)
       state.fov = damp(state.fov, targetFov, 5.5, dt)
+    }
+
+    // Demand mode must finish every damping layer, not just progress. Once
+    // below subpixel tolerances, land exactly and stop scheduling frames.
+    const pending = !reducedMotion && (
+      smoothedState.p !== journeyState.p || offsetPending ||
+      state.pos.distanceToSquared(state.targetPos) > 1e-10 ||
+      state.look.distanceToSquared(state.targetLook) > 1e-10 ||
+      Math.abs(state.fov - targetFov) > 0.001 ||
+      (!mobile && state.pointerSmooth.distanceToSquared(state.pointer) > 1e-8)
+    )
+    if (pending) invalidate()
+    else {
+      state.pos.copy(state.targetPos)
+      state.look.copy(state.targetLook)
+      state.fov = targetFov
     }
 
     // when looking straight down at the floor plan, blend the up vector

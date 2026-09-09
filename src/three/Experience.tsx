@@ -7,16 +7,26 @@ import { AcceptedClinic } from './clinic/AcceptedClinic'
 import { CameraRig } from './CameraRig'
 import type { Quality } from '../hooks/useMediaFlags'
 import type { SceneFailure } from '../lib/sceneFailure'
+import { subscribeJourney } from '../scroll/journey'
 
 /**
  * fires onReady once the scene graph is mounted, and (dev only) exposes a
  * manual frame driver so hidden/headless tabs, where requestAnimationFrame
  * is throttled to zero, can still render frames for qa screenshots.
  */
-function SceneDriver({ onReady, onError }: { onReady?: () => void; onError: (stage: SceneFailure) => void }) {
+function SceneDriver({ active, onReady, onError }: { active: boolean; onReady?: () => void; onError: (stage: SceneFailure) => void }) {
   const advance = useThree((s) => s.advance)
   const get = useThree((s) => s.get)
   const gl = useThree((s) => s.gl)
+  const invalidate = useThree((s) => s.invalidate)
+
+  useEffect(() => {
+    if (!active) return
+    // React resumes the canvas after visibility/intersection changes. A load,
+    // restored scroll or scroll update may have happened while it was asleep.
+    invalidate()
+    return subscribeJourney(invalidate)
+  }, [active, invalidate])
 
   useEffect(() => {
     const lost = (event: Event) => { event.preventDefault(); onError('context-lost') }
@@ -30,20 +40,7 @@ function SceneDriver({ onReady, onError }: { onReady?: () => void; onError: (sta
     const w = window as unknown as Record<string, unknown>
     w.__omnus = get()
     w.__omnusAdvance = () => advance(performance.now())
-    let interval: number | undefined
-    const syncHidden = () => {
-      if (document.hidden && interval === undefined) {
-        interval = window.setInterval(() => advance(performance.now()), 500)
-      } else if (!document.hidden && interval !== undefined) {
-        window.clearInterval(interval)
-        interval = undefined
-      }
-    }
-    syncHidden()
-    document.addEventListener('visibilitychange', syncHidden)
     return () => {
-      if (interval !== undefined) window.clearInterval(interval)
-      document.removeEventListener('visibilitychange', syncHidden)
       delete w.__omnus
       delete w.__omnusAdvance
     }
@@ -79,7 +76,7 @@ export function Experience({ quality, mobile, reducedMotion, active, onReady, on
       <Canvas
         dpr={quality.dpr}
         shadows={quality.shadows}
-        frameloop={active ? 'always' : 'never'}
+        frameloop={active ? 'demand' : 'never'}
         camera={{ fov: 35, near: 0.008, far: 60, position: [2.75, 1.35, 3.55] }}
         gl={(defaults) => {
           try {
@@ -88,7 +85,7 @@ export function Experience({ quality, mobile, reducedMotion, active, onReady, on
               antialias: true,
               powerPreference: 'high-performance',
               alpha: false,
-              preserveDrawingBuffer: true,
+              preserveDrawingBuffer: false,
             })
           } catch (error) {
             // R3F configures asynchronously: React boundaries do not catch
@@ -102,7 +99,7 @@ export function Experience({ quality, mobile, reducedMotion, active, onReady, on
         <Appliance quality={quality} mobile={mobile} reducedMotion={reducedMotion} />
         <AcceptedClinic onError={onError} />
         <CameraRig mobile={mobile} reducedMotion={reducedMotion} />
-        <SceneDriver onReady={onReady} onError={onError} />
+        <SceneDriver active={active} onReady={onReady} onError={onError} />
       </Canvas>
       </SceneBoundary>
     </div>

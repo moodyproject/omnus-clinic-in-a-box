@@ -1,51 +1,103 @@
 import * as THREE from 'three'
 
-// Stage-local gestures, in radians. Lower body and the complete patient
-// narrative remain authored. These are scroll poses, never an idle clock.
-const GESTURES = [
-  { id: 'Reception_Staff', start: 0.28, end: 0.37, side: 'L', turn: 0.35, lift: 0.95, lean: 0.09 },
-  { id: 'Reception_Visitor', start: 0.305, end: 0.38, side: 'R', turn: -0.32, lift: 0.85, lean: 0.06 },
-  { id: 'physician-seated', start: 0.435, end: 0.525, side: 'L', turn: -0.24, lift: 1.0, lean: 0.10 },
-  { id: 'Review_Physician', start: 0.565, end: 0.635, side: 'R', turn: -0.60, lift: 0.95, lean: 0.12 },
-  { id: 'Follow_Coordinator', start: 0.67, end: 0.745, side: 'L', turn: -0.38, lift: 1.0, lean: 0.08 },
-] as const
+type Angles = readonly [number, number, number]
+type Pose = Partial<Record<string, Angles>>
+type Beat = { t: number; pose: Pose }
+const beat = (t: number, pose: Pose): Beat => ({ t, pose })
 
-/** Bake an owned runtime clip so the mixer stays the sole bone writer.
- * Compose against the original clip, not last frame's overlaid pose: repeated
- * seeks, reverse and unchanged holds therefore cannot accumulate gestures.
+// Local-rig rotations, composed with the donor's authored pose. Each role has
+// its own task and rhythm, not a mirrored/scaled copy of one arm wave. Feet,
+// pelvis, root travel and the complete sixth-person patient clip are untouched.
+const checkIn: Pose = {
+  spine03: [.12, .12, 0], head: [.18, .18, 0],
+  'upperarm01.L': [-.35, 0, -.18], 'lowerarm01.L': [-.48, 0, 0],
+  'upperarm01.R': [-.32, 0, .14], 'lowerarm01.R': [-.42, 0, 0],
+}
+const offer: Pose = {
+  spine03: [.06, .18, 0], head: [-.04, .35, 0],
+  'upperarm01.L': [-.5, -.15, -.3], 'lowerarm01.L': [-.65, 0, 0], 'wrist.L': [0, -.3, .12],
+  'lowerarm01.R': [-.28, 0, 0],
+}
+const respond: Pose = {
+  spine03: [.07, -.15, 0], head: [.12, -.32, 0],
+  'upperarm01.R': [-.25, .2, .32], 'lowerarm01.R': [-.8, 0, 0], 'wrist.R': [0, .55, -.16],
+}
+const examine: Pose = {
+  spine03: [.19, -.12, -.03], head: [.12, -.24, 0],
+  'upperarm01.L': [-.6, -.12, -.32], 'lowerarm01.L': [-.6, 0, 0], 'wrist.L': [.1, -.22, 0],
+  'upperarm01.R': [-.18, 0, .1], 'lowerarm01.R': [-.28, 0, 0],
+}
+const keyboard: Pose = {
+  spine03: [.15, -.12, 0], head: [.22, -.28, 0],
+  'upperarm01.L': [-.45, .08, -.22], 'lowerarm01.L': [-.65, 0, 0],
+  'upperarm01.R': [-.45, -.08, .22], 'lowerarm01.R': [-.65, 0, 0],
+}
+const followUp: Pose = {
+  spine03: [.07, -.25, 0], head: [-.06, -.42, 0],
+  'upperarm01.L': [-.25, -.12, -.32], 'lowerarm01.L': [-1.15, 0, 0], 'wrist.L': [.08, -.2, 0],
+  'upperarm01.R': [-.42, 0, .16], 'lowerarm01.R': [-.45, 0, 0],
+}
+const GESTURES = [
+  { id: 'Reception_Staff', start: .28, end: .37, beats: [
+    beat(0, {}), beat(.2, checkIn), beat(.32, { ...checkIn, 'wrist.R': [.18, 0, 0] }),
+    beat(.43, { ...checkIn, 'wrist.L': [.18, 0, 0] }), beat(.68, offer), beat(.84, offer), beat(1, {}),
+  ] },
+  { id: 'Reception_Visitor', start: .305, end: .38, beats: [
+    beat(0, {}), beat(.18, { head: [.13, -.2, 0] }), beat(.42, respond),
+    beat(.57, { ...respond, head: [.3, -.32, 0] }), beat(.7, { ...respond, head: [-.06, -.32, 0] }), beat(1, {}),
+  ] },
+  { id: 'physician-seated', start: .435, end: .525, beats: [
+    beat(0, {}), beat(.2, { spine03: [.1, -.1, 0], head: [.14, -.24, 0] }),
+    beat(.45, examine), beat(.66, { ...examine, 'wrist.L': [-.12, .12, 0], head: [.24, -.24, 0] }),
+    beat(.82, { ...examine, 'lowerarm01.L': [-.38, 0, 0] }), beat(1, {}),
+  ] },
+  { id: 'Review_Physician', start: .565, end: .635, beats: [
+    beat(0, {}), beat(.2, keyboard),
+    ...[.32, .44, .56, .68].map((t, i) => beat(t, {
+      ...keyboard, 'wrist.L': [i % 2 ? -.12 : .2, 0, 0], 'wrist.R': [i % 2 ? .2 : -.12, 0, 0],
+      'lowerarm01.L': [i % 2 ? -.58 : -.7, 0, 0], 'lowerarm01.R': [i % 2 ? -.7 : -.58, 0, 0],
+    })),
+    beat(.84, { ...keyboard, head: [-.1, -.32, 0] }), beat(1, {}),
+  ] },
+  { id: 'Follow_Coordinator', start: .67, end: .745, beats: [
+    beat(0, {}), beat(.22, followUp), beat(.45, { ...followUp, head: [.18, -.42, 0] }),
+    beat(.58, { ...followUp, head: [-.06, -.42, 0] }),
+    beat(.76, { ...followUp, 'upperarm01.R': [-.65, 0, .22], 'wrist.R': [.25, 0, 0] }),
+    beat(.88, { ...followUp, 'lowerarm01.L': [-.7, 0, 0] }), beat(1, {}),
+  ] },
+]
+
+/** Bake owned tracks; the mixer remains the sole bone writer. Sampling from
+ * original tracks (never last frame) prevents accumulation and action blending.
  */
 function withReadableGestures(child: THREE.Object3D, source: THREE.AnimationClip) {
   const clip = source.clone()
-  const q = new THREE.Quaternion(), overlay = new THREE.Quaternion(), euler = new THREE.Euler()
+  const q = new THREE.Quaternion(), overlay = new THREE.Quaternion(), next = new THREE.Quaternion(), euler = new THREE.Euler()
   for (const gesture of GESTURES) {
     const actor = child.name === gesture.id ? child : child.getObjectByName(gesture.id)
     if (!actor) continue
     const bones = new Map<string, THREE.Bone>()
     actor.traverse(node => { if (node instanceof THREE.Bone) bones.set(node.userData.name ?? node.name, node) })
-    for (const name of ['spine03', 'head', 'neck01', `upperarm01.${gesture.side}`, `lowerarm01.${gesture.side}`, `wrist.${gesture.side}`]) {
+    const names = new Set(gesture.beats.flatMap(({ pose }) => Object.keys(pose)))
+    for (const name of names) {
       const bone = bones.get(name)
       if (!bone) continue
       const trackName = `${bone.name}.quaternion`
       const original = source.tracks.find(track => track.name === trackName)
-      // room-people contains one clip per rig. Never add another rig's
-      // channels to that clip, which would blend competing action writers.
+      // room-people has one clip per rig. Never insert another rig's channels.
       if (!original) continue
       const interpolant = new THREE.QuaternionLinearInterpolant(original.times, original.values, 4)
       const times: number[] = [], values: number[] = []
       for (let i = 0; i <= 600; i++) {
         const p = i / 600, time = p * source.duration
         const t = THREE.MathUtils.clamp((p - gesture.start) / (gesture.end - gesture.start), 0, 1)
-        const reach = Math.sin(Math.PI * t) ** 2
-        const nod = Math.sin(Math.PI * t * 2) * reach
-        euler.set(0, 0, 0)
-        if (name === 'spine03') euler.set(gesture.lean * reach, gesture.turn * 0.5 * reach, 0)
-        else if (name === 'head') euler.set(0.18 * nod, gesture.turn * reach, 0)
-        else if (name === 'neck01') euler.set(0.06 * nod, 0, 0)
-        else if (name.startsWith('upperarm')) euler.set(-0.22 * reach, 0, (gesture.side === 'L' ? -1 : 1) * 0.55 * reach)
-        else if (name.startsWith('lowerarm')) euler.set(-gesture.lift * reach, 0, 0)
-        else euler.set(0, 0.2 * reach, 0.22 * nod)
-        q.fromArray(interpolant.evaluate(time))
-        q.multiply(overlay.setFromEuler(euler)).normalize()
+        const index = Math.max(1, gesture.beats.findIndex(b => b.t >= t))
+        const a = gesture.beats[index - 1], b = gesture.beats[index]
+        const local = (t - a.t) / (b.t - a.t), eased = local * local * (3 - 2 * local)
+        overlay.setFromEuler(euler.set(...(a.pose[name] ?? [0, 0, 0])))
+        next.setFromEuler(euler.set(...(b.pose[name] ?? [0, 0, 0])))
+        overlay.slerp(next, eased)
+        q.fromArray(interpolant.evaluate(time)).multiply(overlay).normalize()
         times.push(time); q.toArray(values, values.length)
       }
       clip.tracks = clip.tracks.filter(track => track.name !== trackName)

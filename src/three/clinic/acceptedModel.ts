@@ -1,6 +1,7 @@
 import * as THREE from 'three'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js'
+import { installAnimatedBounds } from './animatedBounds'
 
 const ASSETS = ['clinic-shell', 'consultation', 'physician-seated', 'patient-seated', 'room-people'] as const
 
@@ -24,8 +25,7 @@ export async function loadAcceptedModel(base: string, cancelled: () => boolean) 
         if (node instanceof THREE.Mesh) {
           node.castShadow = true
           node.receiveShadow = true
-          // Bind-pose bounds do not cover travelling/skinned limbs. The six
-          // actors are bounded; the whole clinic already hides and pauses.
+          // Fail open until animated influence bounds are installed below.
           if (node instanceof THREE.SkinnedMesh) node.frustumCulled = false
           // Keep the donor's authored PBR maps/scalars. The site's environment
           // is for the metal appliance; it must not wash out the clinic maps.
@@ -34,9 +34,18 @@ export async function loadAcceptedModel(base: string, cancelled: () => boolean) 
           }
         }
       })
+      // These two assets contain only immutable architecture/furniture. Wall
+      // cutaways deform vertices, not object transforms. Cache LOCAL matrices;
+      // world matrices still follow the enclosing clinic's scale/floor offset.
+      // Never freeze the rigged assets or their animated root channels.
+      if (name === 'clinic-shell' || name === 'consultation') scene.traverse(node => {
+        node.updateMatrix()
+        node.matrixAutoUpdate = false
+      })
       root.add(scene)
       if (cancelled()) throw new Error('Clinic load cancelled')
     }
+    installAnimatedBounds(root)
     return root
   } catch (error) {
     disposeModel(root)

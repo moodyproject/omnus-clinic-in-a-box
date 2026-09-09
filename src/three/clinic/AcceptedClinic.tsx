@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { useFrame } from '@react-three/fiber'
+import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import { CLINIC } from '../constants'
 import { smoothedState, shellOpen, swin } from '../../scroll/journey'
@@ -9,6 +9,7 @@ import type { SceneFailure } from '../../lib/sceneFailure'
 
 /** The accepted scene replaces the entire procedural clinic/people subtree. */
 export function AcceptedClinic({ onError }: { onError: (stage: SceneFailure) => void }) {
+  const invalidate = useThree(s => s.invalidate)
   const mount = useRef<THREE.Group>(null)
   const update = useRef<((cut: number) => void) | null>(null)
   const motion = useRef<ReturnType<typeof createAcceptedMotion> | null>(null)
@@ -26,6 +27,8 @@ export function AcceptedClinic({ onError }: { onError: (stage: SceneFailure) => 
       parent?.add(model)
       update.current = createWallCutaway(model)
       motion.current = createAcceptedMotion(model)
+      // This imperative async attachment is outside React's invalidation.
+      invalidate()
     }).catch(() => { window.clearTimeout(timeout); if (!cancelled) onError('asset-load') })
     return () => {
       cancelled = true
@@ -35,7 +38,7 @@ export function AcceptedClinic({ onError }: { onError: (stage: SceneFailure) => 
       motion.current = null
       if (model) { parent?.remove(model); disposeModel(model) }
     }
-  }, [onError])
+  }, [onError, invalidate])
 
   useFrame(() => {
     const p = smoothedState.p

@@ -25,8 +25,20 @@ export const SCENES: Record<SceneId, { a: number; b: number }> = {
  * hold a stable reference. `snap` asks the camera rig to jump instead of
  * damping (used on load when restoring a mid-page scroll position).
  */
+let progress = 0
+const progressListeners = new Set<() => void>()
+export function subscribeJourney(listener: () => void) {
+  progressListeners.add(listener)
+  return () => { progressListeners.delete(listener) }
+}
+
 export const journeyState = {
-  p: 0,
+  get p() { return progress },
+  set p(value: number) {
+    if (value === progress) return
+    progress = value
+    progressListeners.forEach(listener => listener())
+  },
   snap: true,
 }
 

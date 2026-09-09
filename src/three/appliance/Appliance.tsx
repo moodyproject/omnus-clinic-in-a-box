@@ -106,7 +106,7 @@ export function Appliance({ quality, mobile = false, reducedMotion = false }: { 
     [statusTexture, engraving, contactShadow, ledMat],
   )
 
-  useFrame(({ clock }) => {
+  useFrame(() => {
     const p = smoothedState.p
     const open = shellOpen(p)
     const extra = capLift(p)
@@ -119,8 +119,9 @@ export function Appliance({ quality, mobile = false, reducedMotion = false }: { 
       sleeveRef.current.rotation.y = 0.03 * open
     }
 
-    // quiet breathing status light
-    ledMat.emissiveIntensity = reducedMotion ? 1.35 : 1.35 + Math.sin(clock.elapsedTime * 2.1) * 0.35
+    // The status light follows the tour, not a clock that keeps the entire
+    // clinic rendering while idle. Holds and reverse are deterministic.
+    ledMat.emissiveIntensity = reducedMotion ? 1.35 : 1.35 + Math.sin(p * Math.PI * 2) * 0.35
   })
 
   const shadows = quality.shadows

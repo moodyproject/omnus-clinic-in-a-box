@@ -311,30 +311,6 @@
   transition: opacity 0.5s var(--ease-out);
 }
 
-.scroll-cue .cue-track {
-  width: 1px;
-  height: 34px;
-  background: var(--hairline);
-  position: relative;
-  overflow: hidden;
-}
-
-.scroll-cue .cue-track::after {
-  content: '';
-  position: absolute;
-  top: -50%;
-  left: 0;
-  width: 100%;
-  height: 50%;
-  background: var(--sage);
-  animation: cue-drop 2.1s ease-in-out infinite;
-}
-
-@keyframes cue-drop {
-  0% { top: -50%; }
-  60%, 100% { top: 110%; }
-}
-
 .skip-tour {
   position: fixed;
   bottom: 22px;
@@ -354,12 +330,6 @@
 .skip-tour:hover {
   color: var(--graphite);
   border-color: var(--hairline-strong);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .scroll-cue .cue-track::after {
-    animation: none;
-  }
 }
 
 @media (max-width: 900px) {

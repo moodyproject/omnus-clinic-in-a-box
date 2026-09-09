@@ -58,7 +58,6 @@ export function Footer({ onNavigate }: { onNavigate: (target: string) => void })
 export function ScrollCue({ hidden }: { hidden: boolean }) {
   return (
     <div className="scroll-cue" style={{ opacity: hidden ? 0 : 1, ...instant }} aria-hidden="true">
-      <span className="cue-track" />
       <span>{misc.scrollCue}</span>
     </div>
   )

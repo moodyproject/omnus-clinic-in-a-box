@@ -34,7 +34,9 @@ export function CameraRig({ mobile, reducedMotion = false }: Props) {
       initialized: false,
       top: 100,
       offsetY: 0,
+      offsetX: 0,
       copyHeights: {} as Record<string, number>,
+      copyRight: {} as Record<string, number>,
       fitCamera: new THREE.PerspectiveCamera(),
       fitPoint: new THREE.Vector3(),
     }),
@@ -42,16 +44,19 @@ export function CameraRig({ mobile, reducedMotion = false }: Props) {
   )
 
   useEffect(() => {
-    if (!mobile) return
     const blocks = Array.from(document.querySelectorAll<HTMLElement>('.copy-block'))
+    const inners = blocks.map(block => block.querySelector<HTMLElement>('.copy-inner')!).filter(Boolean)
     const controls = Array.from(document.querySelectorAll<HTMLElement>('.nav'))
     const measure = () => {
       state.top = Math.max(0, ...controls.map(el => el.getBoundingClientRect().bottom)) + 12
-      for (const block of blocks) state.copyHeights[block.dataset.scene!] = block.offsetHeight
+      for (const block of blocks) {
+        state.copyHeights[block.dataset.scene!] = block.offsetHeight
+        state.copyRight[block.dataset.scene!] = (block.querySelector('.copy-inner') ?? block).getBoundingClientRect().right
+      }
       invalidate()
     }
     const observer = new ResizeObserver(measure)
-    for (const element of [...blocks, ...controls]) observer.observe(element)
+    for (const element of [...blocks, ...inners, ...controls]) observer.observe(element)
     measure()
     return () => observer.disconnect()
   }, [mobile, state, invalidate])
@@ -133,7 +138,7 @@ export function CameraRig({ mobile, reducedMotion = false }: Props) {
       offsetPending = Math.abs(state.offsetY - offset) > 0.01
       if (!offsetPending) state.offsetY = offset
       camera.setViewOffset(size.width, size.height, 0, state.offsetY, size.width, size.height)
-    } else if (camera.view?.enabled) camera.clearViewOffset()
+    }
 
     // pointer parallax, strongest in the studio, faint inside the clinic
     const exterior = 1 - insideFactor(p)
@@ -143,6 +148,46 @@ export function CameraRig({ mobile, reducedMotion = false }: Props) {
     state.targetPos.x += state.pointerSmooth.x * strength
     state.targetPos.y -= state.pointerSmooth.y * strength * 0.6
     state.targetLook.x += state.pointerSmooth.x * strength * 0.35
+
+    if (!mobile) {
+      // Keep the accepted perspective, but reserve the measured copy column
+      // when a narrower/taller desktop would put dark text over the device.
+      const weight = 1 - swin(p, 0.08, 0.115) + swin(p, 0.965, 0.995)
+      let offset = 0
+      if (weight > 0) {
+        const fit = state.fitCamera
+        fit.position.copy(state.targetPos)
+        fit.up.set(0, 1, 0)
+        fit.lookAt(state.targetLook)
+        fit.aspect = size.width / size.height
+        fit.fov = targetFov
+        fit.clearViewOffset()
+        fit.updateProjectionMatrix()
+        fit.updateMatrixWorld(true)
+        let minX = Infinity, maxX = -Infinity
+        for (const x of [-DEVICE.w / 2, DEVICE.w / 2]) for (const y of [0, DEVICE_TOP]) for (const z of [-DEVICE.d / 2, DEVICE.d / 2]) {
+          const v = state.fitPoint.set(x, y, z).project(fit)
+          const screenX = (v.x + 1) * size.width / 2
+          minX = Math.min(minX, screenX); maxX = Math.max(maxX, screenX)
+        }
+        const scene = p < 0.5 ? 'object' : 'reveal'
+        const left = Math.min(size.width - 80, (state.copyRight[scene] ?? size.width * 0.46) + 32)
+        const right = size.width - 32
+        const scale = Math.min(1, (right - left) / (maxX - minX))
+        const tangent = Math.tan(THREE.MathUtils.degToRad(targetFov / 2))
+        targetFov = THREE.MathUtils.lerp(targetFov, THREE.MathUtils.radToDeg(2 * Math.atan(tangent / scale)), weight)
+        const effectiveScale = tangent / Math.tan(THREE.MathUtils.degToRad(targetFov / 2))
+        const center = size.width / 2 + ((minX + maxX) / 2 - size.width / 2) * effectiveScale
+        const halfWidth = (maxX - minX) * effectiveScale / 2
+        const targetCenter = THREE.MathUtils.clamp(center, left + halfWidth, right - halfWidth)
+        offset = (center - targetCenter) * weight
+      }
+      state.offsetX = state.initialized ? damp(state.offsetX, offset, 7.5, dt) : offset
+      offsetPending = Math.abs(state.offsetX - offset) > 0.01
+      if (!offsetPending) state.offsetX = offset
+      if (state.offsetX !== 0) camera.setViewOffset(size.width, size.height, state.offsetX, 0, size.width, size.height)
+      else if (camera.view?.enabled) camera.clearViewOffset()
+    }
 
     if (!state.initialized || reducedMotion) {
       state.pos.copy(state.targetPos)

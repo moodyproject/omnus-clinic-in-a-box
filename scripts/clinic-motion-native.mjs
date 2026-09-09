@@ -10,9 +10,9 @@ try{
   const page=await browser.newPage();await page.setViewport({width,height:width===1440?900:844,deviceScaleFactor:1,isMobile:width<500,hasTouch:width<500})
   const errors=[];page.on('pageerror',e=>errors.push(String(e)))
   await page.goto(base,{waitUntil:'networkidle0'});await page.waitForFunction(()=>window.__omnus?.scene.getObjectByName('room-people'))
-  const settled=async()=>{
+  const settled=async(expected=null)=>{
    await page.evaluate(async()=>{window.motionProgress=await import('/src/scroll/journey.ts')})
-   await page.waitForFunction(()=>Math.abs(window.motionProgress.smoothedState.p-window.motionProgress.journeyState.p)<1e-10,{timeout:15000})
+   await page.waitForFunction(expected=>(expected===null||Math.abs(window.motionProgress.journeyState.p-expected)<.0005)&&Math.abs(window.motionProgress.smoothedState.p-window.motionProgress.journeyState.p)<1e-10,{timeout:15000},expected)
    await wait(100)
   }
   const state=()=>page.evaluate(()=>{
@@ -20,7 +20,7 @@ try{
    const bones=[];root.traverse(n=>{if(n.isBone)bones.push(...n.position.toArray(),...n.quaternion.toArray())})
    return {y:scrollY,p:window.motionProgress.smoothedState.p,bones,overflow:document.documentElement.scrollWidth>innerWidth,render:{calls:window.__omnus.gl.info.render.calls,triangles:window.__omnus.gl.info.render.triangles}}
   })
-  const scroll=async p=>{await page.evaluate(p=>{const e=document.querySelector('.journey');scrollTo(0,e.offsetTop+(e.offsetHeight-innerHeight)*p)},p);await wait(100);await settled();return state()}
+  const scroll=async p=>{await page.evaluate(p=>{const e=document.querySelector('.journey');scrollTo(0,e.offsetTop+(e.offsetHeight-innerHeight)*p)},p);await wait(100);await settled(p);return state()}
   await scroll(.28);const first=await scroll(.47);await page.screenshot({path:`${out}/${width}-consult.png`})
   await scroll(.78);const reverse=await scroll(.47)
   await page.reload({waitUntil:'networkidle0'});await page.waitForFunction(()=>window.__omnus?.scene.getObjectByName('room-people'));await settled();const reload=await state()

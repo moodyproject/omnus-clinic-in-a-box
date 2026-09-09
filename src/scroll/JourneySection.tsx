@@ -89,7 +89,28 @@ export function Journey({ quality, mobile, onError, onBookDemo, onWaitlist }: Pr
       }
     }
 
-    return () => trigger.kill()
+    if (!mobile) return () => trigger.kill()
+
+    // Mobile browser chrome changes layout height without a reliable window
+    // resize refresh from ScrollTrigger. Observe the actual scroll owner:
+    // stale end bounds otherwise put both camera and copy in the wrong room.
+    let refreshFrame = 0
+    let { width, height } = el.getBoundingClientRect()
+    const resizeObserver = new ResizeObserver(([entry]) => {
+      // The initial observer notification is not a resize. Refreshing during
+      // native document restoration can reset a recovered scroll position.
+      if (entry.contentRect.width === width && entry.contentRect.height === height) return
+      width = entry.contentRect.width
+      height = entry.contentRect.height
+      cancelAnimationFrame(refreshFrame)
+      refreshFrame = requestAnimationFrame(() => ScrollTrigger.refresh())
+    })
+    resizeObserver.observe(el)
+    return () => {
+      resizeObserver.disconnect()
+      cancelAnimationFrame(refreshFrame)
+      trigger.kill()
+    }
   }, [mobile])
 
   // pause rendering when the journey is off-screen or the tab is hidden

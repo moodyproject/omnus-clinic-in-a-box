@@ -1,7 +1,7 @@
 import * as THREE from 'three'
 import { useEffect, useMemo } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
-import { journeyState, smoothedState, insideFactor, swin } from '../scroll/journey'
+import { journeyState, smoothedState, insideFactor, swin, SCENES } from '../scroll/journey'
 import { KEYS_DESKTOP, KEYS_MOBILE, samplePath } from './paths'
 import { damp, dampV3 } from '../lib/math'
 
@@ -18,6 +18,7 @@ interface Props {
  */
 export function CameraRig({ mobile, reducedMotion = false }: Props) {
   const camera = useThree((s) => s.camera) as THREE.PerspectiveCamera
+  const size = useThree((s) => s.size)
 
   const state = useMemo(
     () => ({
@@ -29,9 +30,26 @@ export function CameraRig({ mobile, reducedMotion = false }: Props) {
       pointer: new THREE.Vector2(),
       pointerSmooth: new THREE.Vector2(),
       initialized: false,
+      top: 100,
+      offsetY: 0,
+      copyHeights: {} as Record<string, number>,
     }),
     [],
   )
+
+  useEffect(() => {
+    if (!mobile) return
+    const blocks = Array.from(document.querySelectorAll<HTMLElement>('.copy-block'))
+    const controls = Array.from(document.querySelectorAll<HTMLElement>('.nav, .view-static'))
+    const measure = () => {
+      state.top = Math.max(0, ...controls.map(el => el.getBoundingClientRect().bottom)) + 12
+      for (const block of blocks) state.copyHeights[block.dataset.scene!] = block.offsetHeight
+    }
+    const observer = new ResizeObserver(measure)
+    for (const element of [...blocks, ...controls]) observer.observe(element)
+    measure()
+    return () => observer.disconnect()
+  }, [mobile, state])
 
   useEffect(() => {
     if (mobile || reducedMotion) return
@@ -58,13 +76,29 @@ export function CameraRig({ mobile, reducedMotion = false }: Props) {
     const p = smoothedState.p
 
     const keys = mobile ? KEYS_MOBILE : KEYS_DESKTOP
-    const targetFov = samplePath(keys, p, state.targetPos, state.targetLook)
+    let targetFov = samplePath(keys, p, state.targetPos, state.targetLook)
+    if (mobile) {
+      // Preserve the designed horizontal field at any phone aspect ratio.
+      const aspect = size.width / size.height
+      const roomFov = 2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(targetFov / 2)) * (390 / 844) / aspect)
+      const overview = swin(p, 0.74, 0.79) * (1 - swin(p, 0.85, 0.895))
+      // Fit the 1.36-unit chassis plus balanced margins, not desktop's
+      // deliberately asymmetric editorial composition.
+      const fitFov = 2 * Math.atan(1.52 / (2 * state.targetPos.distanceTo(state.targetLook) * aspect))
+      targetFov = THREE.MathUtils.radToDeg(THREE.MathUtils.lerp(roomFov, fitFov, overview))
+      const scene = Object.entries(SCENES).find(([, range]) => p >= range.a && p <= range.b)?.[0] ?? 'object'
+      const bottom = size.height - (state.copyHeights[scene] ?? 250)
+      const center = (state.top + Math.max(state.top, bottom)) / 2
+      const offset = size.height / 2 - center
+      state.offsetY = state.initialized ? damp(state.offsetY, offset, 7.5, dt) : offset
+      camera.setViewOffset(size.width, size.height, 0, state.offsetY, size.width, size.height)
+    } else if (camera.view?.enabled) camera.clearViewOffset()
 
     // pointer parallax, strongest in the studio, faint inside the clinic
     const exterior = 1 - insideFactor(p)
     state.pointerSmooth.x = damp(state.pointerSmooth.x, state.pointer.x, 3, dt)
     state.pointerSmooth.y = damp(state.pointerSmooth.y, state.pointer.y, 3, dt)
-    const strength = 0.02 + 0.06 * exterior
+    const strength = mobile || reducedMotion ? 0 : 0.02 + 0.06 * exterior
     state.targetPos.x += state.pointerSmooth.x * strength
     state.targetPos.y -= state.pointerSmooth.y * strength * 0.6
     state.targetLook.x += state.pointerSmooth.x * strength * 0.35

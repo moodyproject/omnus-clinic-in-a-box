@@ -1,23 +1,25 @@
 import { Component, useEffect, type ReactNode } from 'react'
 import { Canvas, useThree } from '@react-three/fiber'
+import { WebGLRenderer } from 'three'
 import { Studio } from './Studio'
 import { Appliance } from './appliance/Appliance'
 import { AcceptedClinic } from './clinic/AcceptedClinic'
 import { CameraRig } from './CameraRig'
 import type { Quality } from '../hooks/useMediaFlags'
+import type { SceneFailure } from '../lib/sceneFailure'
 
 /**
  * fires onReady once the scene graph is mounted, and (dev only) exposes a
  * manual frame driver so hidden/headless tabs, where requestAnimationFrame
  * is throttled to zero, can still render frames for qa screenshots.
  */
-function SceneDriver({ onReady, onError }: { onReady?: () => void; onError: () => void }) {
+function SceneDriver({ onReady, onError }: { onReady?: () => void; onError: (stage: SceneFailure) => void }) {
   const advance = useThree((s) => s.advance)
   const get = useThree((s) => s.get)
   const gl = useThree((s) => s.gl)
 
   useEffect(() => {
-    const lost = (event: Event) => { event.preventDefault(); onError() }
+    const lost = (event: Event) => { event.preventDefault(); onError('context-lost') }
     gl.domElement.addEventListener('webglcontextlost', lost)
     return () => gl.domElement.removeEventListener('webglcontextlost', lost)
   }, [gl, onError])
@@ -55,13 +57,13 @@ interface Props {
   mobile: boolean
   active: boolean
   onReady?: () => void
-  onError: () => void
+  onError: (stage: SceneFailure) => void
 }
 
-class SceneBoundary extends Component<{ children: ReactNode; onError: () => void }, { failed: boolean }> {
+class SceneBoundary extends Component<{ children: ReactNode; onError: (stage: SceneFailure) => void }, { failed: boolean }> {
   state = { failed: false }
   static getDerivedStateFromError() { return { failed: true } }
-  componentDidCatch() { this.props.onError() }
+  componentDidCatch() { this.props.onError('scene-render') }
   render() { return this.state.failed ? null : this.props.children }
 }
 
@@ -78,13 +80,21 @@ export function Experience({ quality, mobile, active, onReady, onError }: Props)
         shadows={quality.shadows}
         frameloop={active ? 'always' : 'never'}
         camera={{ fov: 35, near: 0.008, far: 60, position: [2.75, 1.35, 3.55] }}
-        gl={{
-          antialias: true,
-          powerPreference: 'high-performance',
-          alpha: false,
-          // keeps the last frame available to the compositor, so background
-          // tabs and headless captures always show a rendered frame
-          preserveDrawingBuffer: true,
+        gl={(defaults) => {
+          try {
+            return new WebGLRenderer({
+              ...defaults,
+              antialias: true,
+              powerPreference: 'high-performance',
+              alpha: false,
+              preserveDrawingBuffer: true,
+            })
+          } catch (error) {
+            // R3F configures asynchronously: React boundaries do not catch
+            // renderer construction failures, even after a successful probe.
+            onError('renderer-init')
+            throw error
+          }
         }}
       >
         <Studio quality={quality} />

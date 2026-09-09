@@ -7,13 +7,14 @@ import { ScrollCue, SkipTour } from '../ui/Sections'
 import { journeyState, JOURNEY_VH_DESKTOP, JOURNEY_VH_MOBILE, POSE } from './journey'
 import type { Quality } from '../hooks/useMediaFlags'
 import { hideBoot } from '../lib/boot'
+import type { SceneFailure } from '../lib/sceneFailure'
 
 gsap.registerPlugin(ScrollTrigger)
 
 interface Props {
   quality: Quality
   mobile: boolean
-  onError: () => void
+  onError: (stage: SceneFailure) => void
   onBookDemo: () => void
   onWaitlist: () => void
 }

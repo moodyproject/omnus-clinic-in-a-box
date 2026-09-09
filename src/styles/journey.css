@@ -486,6 +486,22 @@
 
 /* ---------- static journey (reduced motion / no webgl) ---------- */
 
+.view-static {
+  position: fixed;
+  top: 76px;
+  right: 16px;
+  z-index: 20;
+  padding: 8px 12px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-card);
+  background: var(--porcelain);
+  color: var(--ink-2);
+  font-size: var(--text-small);
+  cursor: pointer;
+}
+
+.static-note p { margin: 0 0 12px; }
+
 .static-journey {
   padding-top: 92px;
 }

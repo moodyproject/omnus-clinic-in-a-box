@@ -5,9 +5,10 @@ import { CLINIC } from '../constants'
 import { smoothedState, shellOpen, swin } from '../../scroll/journey'
 import { createWallCutaway, disposeModel, loadAcceptedModel } from './acceptedModel'
 import { createAcceptedMotion } from './acceptedMotion'
+import type { SceneFailure } from '../../lib/sceneFailure'
 
 /** The accepted scene replaces the entire procedural clinic/people subtree. */
-export function AcceptedClinic({ onError }: { onError: () => void }) {
+export function AcceptedClinic({ onError }: { onError: (stage: SceneFailure) => void }) {
   const mount = useRef<THREE.Group>(null)
   const update = useRef<((cut: number) => void) | null>(null)
   const motion = useRef<ReturnType<typeof createAcceptedMotion> | null>(null)
@@ -16,7 +17,7 @@ export function AcceptedClinic({ onError }: { onError: () => void }) {
     let cancelled = false
     let model: THREE.Group | undefined
     const parent = mount.current
-    const timeout = window.setTimeout(() => { if (!cancelled) onError() }, 45000)
+    const timeout = window.setTimeout(() => { if (!cancelled) onError('asset-timeout') }, 45000)
     void loadAcceptedModel(import.meta.env.BASE_URL, () => cancelled).then((loaded) => {
       window.clearTimeout(timeout)
       if (cancelled) { disposeModel(loaded); return }
@@ -25,7 +26,7 @@ export function AcceptedClinic({ onError }: { onError: () => void }) {
       parent?.add(model)
       update.current = createWallCutaway(model)
       motion.current = createAcceptedMotion(model)
-    }).catch(() => { window.clearTimeout(timeout); if (!cancelled) onError() })
+    }).catch(() => { window.clearTimeout(timeout); if (!cancelled) onError('asset-load') })
     return () => {
       cancelled = true
       window.clearTimeout(timeout)

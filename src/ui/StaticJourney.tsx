@@ -1,4 +1,5 @@
-import { scenes, actions, misc } from '../content/copy'
+import { scenes, actions } from '../content/copy'
+import { sceneFailureNotes, type StaticReason } from '../lib/sceneFailure'
 
 /**
  * the same story told as accessible steps, used when the visitor prefers
@@ -18,10 +19,16 @@ export function DeviceIllustration() {
 
 export function StaticJourney({
   reason,
+  onEnable3D,
+  onRetry,
+  attempts,
   onBookDemo,
   onWaitlist,
 }: {
-  reason: 'reduced-motion' | 'no-webgl' | 'load-failure'
+  reason: StaticReason
+  onEnable3D?: () => void
+  onRetry?: () => void
+  attempts: number
   onBookDemo: () => void
   onWaitlist: () => void
 }) {
@@ -30,11 +37,20 @@ export function StaticJourney({
 
   return (
     <div className="static-journey">
-      <p className="static-note" role="note">
-        {reason === 'load-failure'
-          ? 'The 3D clinic could not load. Explore the saved clinic image and the complete story below, or reload to retry.'
-          : reason === 'no-webgl' ? misc.fallbackNote : misc.reducedNote}
-      </p>
+      <div className="static-note" role="note" data-scene-reason={reason}>
+        <p>{sceneFailureNotes[reason]}</p>
+        {onEnable3D && <>
+          <p>The interactive 3D clinic uses scroll-driven motion. Enable it only if you are comfortable with motion; you can return to this static story at any time.</p>
+          <button className="btn btn-secondary" data-action="enable-3d" onClick={onEnable3D}>Enable interactive 3D</button>
+        </>}
+        {!onEnable3D && <>
+          <p>Retrying enables scroll-driven motion if graphics are available. You can return to the static story at any time.</p>
+          {onRetry
+            ? <button className="btn btn-secondary" data-action="retry-3d" onClick={onRetry}>{reason === 'no-webgl2' ? 'Check again for 3D' : 'Retry 3D in low quality'} ({2 - attempts} left)</button>
+            : <p>Both recovery attempts have been used. The full story and contact forms remain available below. Try reopening this page in Safari or Chrome after checking your connection.</p>}
+        </>}
+        <small data-scene-diagnostic>View: {reason}; recovery attempts: {attempts}/2. This diagnostic stays on this page.</small>
+      </div>
 
       <section className="static-hero">
         <div>

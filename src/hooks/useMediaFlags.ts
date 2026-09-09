@@ -38,15 +38,15 @@ export function useQuality(): Quality {
   return { tier: 'high', dpr: [1, 2], shadows: true }
 }
 
-export function useWebGLSupport(): boolean {
-  const [supported] = useState(() => {
-    try {
-      const canvas = document.createElement('canvas')
-      const gl = canvas.getContext('webgl2') ?? canvas.getContext('webgl')
-      return gl !== null
-    } catch {
-      return false
-    }
-  })
-  return supported
+export function checkWebGL2(): boolean {
+  try {
+    const canvas = document.createElement('canvas')
+    const gl = canvas.getContext('webgl2')
+    if (!gl) return false
+    // Three r182 requires WebGL2. Do not retain a competing probe context.
+    gl.getExtension('WEBGL_lose_context')?.loseContext()
+    return true
+  } catch {
+    return false
+  }
 }

@@ -18,6 +18,7 @@ interface Props {
   failure: SceneFailure | null
   attempts: number
   onRetry: () => void
+  onToggleMotion?: () => void
   onError: (stage: SceneFailure) => void
   onBookDemo: () => void
   onWaitlist: () => void
@@ -28,7 +29,7 @@ interface Props {
  * a sticky viewport plus one ScrollTrigger that writes normalized progress
  * into journeyState for the r3f loop, and drives the dom copy timeline.
  */
-export function Journey({ quality, mobile, reducedMotion, failure, attempts, onRetry, onError, onBookDemo, onWaitlist }: Props) {
+export function Journey({ quality, mobile, reducedMotion, failure, attempts, onRetry, onToggleMotion, onError, onBookDemo, onWaitlist }: Props) {
   const sectionRef = useRef<HTMLElement>(null)
   const viewportRef = useRef<HTMLDivElement>(null)
   const [cueHidden, setCueHidden] = useState(false)
@@ -148,6 +149,12 @@ export function Journey({ quality, mobile, reducedMotion, failure, attempts, onR
       aria-label="the omnus journey: from appliance to clinic and back"
     >
       <div className="journey-viewport" ref={viewportRef}>
+        {onToggleMotion && !failure && (
+          <button className="btn btn-secondary motion-preference" data-action="toggle-motion"
+            aria-pressed={!reducedMotion} onClick={onToggleMotion}>
+            {reducedMotion ? 'Enable full motion' : 'Use reduced motion'}
+          </button>
+        )}
         {failure ? (
           <div className="scene-error" role="alert" data-scene-reason={failure}>
             <p>{sceneFailureNotes[failure]}</p>

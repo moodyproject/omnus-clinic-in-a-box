@@ -4,6 +4,7 @@ import { useFrame, useThree } from '@react-three/fiber'
 import { journeyState, smoothedState, insideFactor, swin, SCENES } from '../scroll/journey'
 import { KEYS_DESKTOP, KEYS_MOBILE, samplePath } from './paths'
 import { damp, dampV3 } from '../lib/math'
+import { DEVICE, DEVICE_TOP } from './constants'
 
 interface Props {
   mobile: boolean
@@ -34,6 +35,8 @@ export function CameraRig({ mobile, reducedMotion = false }: Props) {
       top: 100,
       offsetY: 0,
       copyHeights: {} as Record<string, number>,
+      fitCamera: new THREE.PerspectiveCamera(),
+      fitPoint: new THREE.Vector3(),
     }),
     [],
   )
@@ -41,7 +44,7 @@ export function CameraRig({ mobile, reducedMotion = false }: Props) {
   useEffect(() => {
     if (!mobile) return
     const blocks = Array.from(document.querySelectorAll<HTMLElement>('.copy-block'))
-    const controls = Array.from(document.querySelectorAll<HTMLElement>('.nav'))
+    const controls = Array.from(document.querySelectorAll<HTMLElement>('.nav, .motion-preference'))
     const measure = () => {
       state.top = Math.max(0, ...controls.map(el => el.getBoundingClientRect().bottom)) + 12
       for (const block of blocks) state.copyHeights[block.dataset.scene!] = block.offsetHeight
@@ -51,7 +54,7 @@ export function CameraRig({ mobile, reducedMotion = false }: Props) {
     for (const element of [...blocks, ...controls]) observer.observe(element)
     measure()
     return () => observer.disconnect()
-  }, [mobile, state, invalidate])
+  }, [mobile, reducedMotion, state, invalidate])
 
   useEffect(() => {
     if (mobile || reducedMotion) return
@@ -100,6 +103,31 @@ export function CameraRig({ mobile, reducedMotion = false }: Props) {
       const scene = Object.entries(SCENES).find(([, range]) => p >= range.a && p <= range.b)?.[0] ?? 'object'
       const bottom = size.height - (state.copyHeights[scene] ?? 250)
       const center = (state.top + Math.max(state.top, bottom)) / 2
+      // The closed product must fit the actual portrait space, not just a
+      // nominal FOV. Its old low look-target also cropped the top of the box.
+      const exteriorFit = 1 - swin(p, 0.08, 0.115) + swin(p, 0.965, 0.995)
+      if (exteriorFit > 0) {
+        state.targetLook.lerp(state.fitPoint.set(0, DEVICE_TOP / 2, 0), exteriorFit)
+        const fit = state.fitCamera
+        fit.position.copy(state.targetPos)
+        fit.up.set(0, 1, 0)
+        fit.lookAt(state.targetLook)
+        fit.updateMatrixWorld(true)
+        const halfWidth = Math.max(1, size.width / 2 - 20)
+        const halfHeight = Math.max(1, (bottom - state.top) / 2 - 20)
+        let tangent = 0
+        for (const x of [-DEVICE.w / 2, DEVICE.w / 2]) {
+          for (const y of [0, DEVICE_TOP]) {
+            for (const z of [-DEVICE.d / 2, DEVICE.d / 2]) {
+              const v = state.fitPoint.set(x, y, z).applyMatrix4(fit.matrixWorldInverse)
+              const depth = Math.max(0.01, -v.z)
+              tangent = Math.max(tangent, Math.abs(v.x) / depth * size.height / (2 * halfWidth), Math.abs(v.y) / depth * size.height / (2 * halfHeight))
+            }
+          }
+        }
+        const fittedFov = THREE.MathUtils.radToDeg(2 * Math.atan(tangent))
+        targetFov = THREE.MathUtils.lerp(targetFov, Math.max(targetFov, fittedFov), exteriorFit)
+      }
       const offset = size.height / 2 - center
       state.offsetY = state.initialized && !reducedMotion ? damp(state.offsetY, offset, 7.5, dt) : offset
       offsetPending = Math.abs(state.offsetY - offset) > 0.01

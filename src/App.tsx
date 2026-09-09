@@ -22,9 +22,11 @@ const NAV_PROGRESS: Record<string, number> = {
 }
 
 export default function App() {
-  const reducedMotion = usePrefersReducedMotion()
+  const prefersReducedMotion = usePrefersReducedMotion()
+  const [fullMotion, setFullMotion] = useState(false)
   const [webgl, setWebgl] = useState(checkWebGL2)
   const mobile = useIsMobile()
+  const reducedMotion = prefersReducedMotion && !(mobile && fullMotion)
   const quality = useQuality()
   const [dialog, setDialog] = useState<Dialog>(null)
   const [failure, setFailure] = useState<SceneFailure | null>(null)
@@ -86,6 +88,7 @@ export default function App() {
           failure={sceneFailure}
           attempts={attempts}
           onRetry={retry3D}
+          onToggleMotion={mobile && prefersReducedMotion ? () => setFullMotion(value => !value) : undefined}
           onError={onSceneError}
           onBookDemo={() => setDialog('demo')}
           onWaitlist={() => setDialog('waitlist')}

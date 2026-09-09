@@ -50,7 +50,7 @@ export const scenes: SceneCopy[] = [
   },
   {
     id: 'before',
-    side: 'right',
+    side: 'left',
     heading: 'before the visit',
     headingLevel: 2,
     body: 'intake, scheduling, referrals, and context arrive in one place before the physician walks in.',
@@ -74,7 +74,7 @@ export const scenes: SceneCopy[] = [
   },
   {
     id: 'after',
-    side: 'right',
+    side: 'left',
     heading: 'after the visit',
     headingLevel: 2,
     body: 'summaries, prescriptions, referrals, and follow-up move from decisions to action.',

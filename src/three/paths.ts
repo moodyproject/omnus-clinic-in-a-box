@@ -19,22 +19,27 @@ export const KEYS_DESKTOP: CamKey[] = [
   { p: 0.06, pos: [2.45, 1.0, 3.15], look: [-0.68, 0.4, 0], fov: 35 },
   { p: 0.12, pos: [1.15, 0.9, 2.35], look: [-0.12, 0.45, 0.15], fov: 38 },
   { p: 0.18, pos: [0.35, 0.92, 1.7], look: [0, 0.42, 0.45], fov: 42 },
-  { p: 0.235, pos: [0.05, 0.98, 1.2], look: [0, 0.25, 0.2], fov: 47 },
-  // reception: leaning over the model, steep enough to clear the wall caps
-  { p: 0.28, pos: [0.14, 1.3, 0.82], look: [-0.28, 0.08, 0.33], fov: 44 },
-  { p: 0.33, pos: [0.02, 1.26, 0.74], look: [-0.28, 0.08, 0.33], fov: 44 },
-  { p: 0.38, pos: [-0.02, 1.18, 0.7], look: [-0.26, 0.09, 0.33], fov: 45 },
+  // First physician-led slice: preparation, west opening, east opening, chair.
+  { p: 0.235, pos: [0.05, 0.98, 1.0], look: [-0.175, 0.20, 0.415], fov: 47 },
+  { p: 0.335 + 0.03, pos: [0.12, 1.02, 0.94], look: [-0.175, 0.20, 0.415], fov: 44 },
+  { p: 0.36 + 0.03, pos: [0.32, 1.02, 0.86], look: [0, 0.20, 0.3225], fov: 44 },
+  { p: 0.405 + 0.03, pos: [0.42, 0.98, 0.80], look: [0.265, 0.20, 0.26], fov: 45 },
+  { p: 0.42 + 0.03, pos: [0.42, 0.95, 0.74], look: [0.31, 0.12, 0.34], fov: 46 },
   // exam: hover inside the model over the room's northeast corner, so the
   // physician and patient sit in profile with no wall in the sightline
-  { p: 0.43, pos: [0.42, 0.95, 0.74], look: [0.31, 0.12, 0.34], fov: 46 },
+  { p: 0.43 + 0.03, pos: [0.42, 0.95, 0.74], look: [0.31, 0.12, 0.34], fov: 46 },
   { p: 0.48, pos: [0.46, 0.76, 0.6], look: [0.32, 0.12, 0.35], fov: 47 },
   { p: 0.525, pos: [0.48, 0.65, 0.52], look: [0.33, 0.14, 0.34], fov: 49 },
-  // review: rise and pivot to the back-right desk
-  { p: 0.57, pos: [0.22, 0.86, 0.26], look: [0.4, 0.08, -0.4], fov: 50 },
-  { p: 0.63, pos: [0.28, 0.78, 0.1], look: [0.4, 0.09, -0.44], fov: 50 },
-  // follow-through: swing to the back-left room
-  { p: 0.675, pos: [-0.18, 0.86, 0.24], look: [-0.4, 0.08, -0.4], fov: 50 },
-  { p: 0.74, pos: [-0.26, 0.78, 0.1], look: [-0.4, 0.09, -0.44], fov: 50 },
+  // Follow the physician out through the consultation doorway and corridor.
+  { p: 0.545, pos: [0.48, 0.69, 0.60], look: [0.25, 0.20, 0.25], fov: 49 },
+  { p: 0.563, pos: [0.32, 0.78, 0.62], look: [0.04, 0.20, 0.32], fov: 49 },
+  { p: 0.585, pos: [0.25, 0.78, 0.28], look: [-0.1, 0.20, -0.03], fov: 49 },
+  { p: 0.605, pos: [0.10, 0.70, 0.05], look: [0.04, 0.20, -0.32], fov: 48 },
+  { p: 0.62, pos: [0.02, 0.58, -0.03], look: [0.07, 0.22, -0.40], fov: 47 },
+  { p: 0.66, pos: [0.02, 0.58, -0.03], look: [0.07, 0.22, -0.40], fov: 47 },
+  { p: 0.688, pos: [-0.22, 0.72, 0.04], look: [-0.10, 0.20, -0.3225], fov: 49 },
+  { p: 0.715, pos: [-0.61, 0.58, -0.02], look: [-0.36, 0.22, -0.39], fov: 47 },
+  { p: 0.765, pos: [-0.61, 0.58, -0.02], look: [-0.36, 0.22, -0.39], fov: 47 },
   // operations: rise to the overhead cutaway, shifted so the west stations
   // clear the editorial copy column
   { p: 0.79, pos: [-0.08, 1.32, -0.1], look: [-0.12, 0.13, -0.04], fov: 50 },
@@ -56,19 +61,23 @@ export const KEYS_MOBILE: CamKey[] = [
   { p: 0.06, pos: [0.8, 0.98, 2.95], look: [0, 0.12, 0], fov: 44 },
   { p: 0.12, pos: [0.45, 0.95, 2.7], look: [0, 0.3, 0.15], fov: 47 },
   { p: 0.18, pos: [0.15, 0.95, 2.0], look: [0, 0.35, 0.45], fov: 50 },
-  { p: 0.235, pos: [0.03, 1.05, 1.4], look: [0, 0.25, 0.2], fov: 53 },
-  // Stable action views frame the accepted cast, not the old room anchors.
-  // Receptionist faces -Z: view the hand from the front, not over the chair.
-  { p: 0.28, pos: [-0.05, 0.72, -0.28], look: [-0.36, 0.20, 0.34], fov: 54 },
-  { p: 0.38, pos: [-0.05, 0.72, -0.28], look: [-0.36, 0.20, 0.34], fov: 54 },
-  { p: 0.43, pos: [0.52, 0.79, 0.69], look: [0.265, 0.21, 0.33], fov: 54 },
+  { p: 0.235, pos: [0.03, 1.05, 1.4], look: [-0.175, 0.25, 0.3225], fov: 53 },
+  // Follow the same physician crossing; retain the downstream bounds-fit.
+  { p: 0.335 + 0.03, pos: [0.08, 0.85, 0.82], look: [-0.175, 0.20, 0.415], fov: 54 },
+  { p: 0.36 + 0.03, pos: [0.32, 0.85, 0.78], look: [0, 0.20, 0.3225], fov: 54 },
+  { p: 0.405 + 0.03, pos: [0.52, 0.79, 0.69], look: [0.265, 0.21, 0.29], fov: 54 },
+  { p: 0.42 + 0.03, pos: [0.52, 0.79, 0.69], look: [0.265, 0.21, 0.33], fov: 54 },
+  { p: 0.43 + 0.03, pos: [0.52, 0.79, 0.69], look: [0.265, 0.21, 0.33], fov: 54 },
   { p: 0.525, pos: [0.52, 0.79, 0.69], look: [0.265, 0.21, 0.33], fov: 54 },
-  { p: 0.57, pos: [0.78, 0.65, -0.78], look: [0.325, 0.18, -0.40], fov: 55 },
-  { p: 0.63, pos: [0.78, 0.65, -0.78], look: [0.325, 0.18, -0.40], fov: 55 },
-  // Front-oblique view exposes the coordinator's left hand above the desk,
-  // rather than hiding the scroll gesture behind the torso and chair back.
-  { p: 0.675, pos: [-0.85, 0.65, -0.78], look: [-0.43, 0.17, -0.39], fov: 55 },
-  { p: 0.74, pos: [-0.85, 0.65, -0.78], look: [-0.43, 0.17, -0.39], fov: 55 },
+  { p: 0.545, pos: [0.52, 0.79, 0.69], look: [0.265, 0.21, 0.29], fov: 54 },
+  { p: 0.563, pos: [0.27, 0.78, 0.72], look: [0.12, 0.21, 0.32], fov: 54 },
+  { p: 0.585, pos: [0.23, 0.78, 0.30], look: [0, 0.21, -0.03], fov: 54 },
+  { p: 0.605, pos: [0.15, 0.70, 0.06], look: [0.15, 0.21, -0.32], fov: 54 },
+  { p: 0.62, pos: [0.02, 0.57, -0.03], look: [0.23, 0.22, -0.40], fov: 54 },
+  { p: 0.66, pos: [0.02, 0.57, -0.03], look: [0.23, 0.22, -0.40], fov: 54 },
+  { p: 0.688, pos: [-0.12, 0.68, 0.06], look: [0, 0.21, -0.3225], fov: 54 },
+  { p: 0.715, pos: [-0.61, 0.57, -0.02], look: [-0.36, 0.22, -0.39], fov: 54 },
+  { p: 0.765, pos: [-0.61, 0.57, -0.02], look: [-0.36, 0.22, -0.39], fov: 54 },
   { p: 0.79, pos: [0, 2.3, 0.001], look: [0, 0.136, 0], fov: 54 },
   { p: 0.85, pos: [0, 2.3, 0.001], look: [0, 0.136, 0], fov: 54 },
   { p: 0.885, pos: [0.25, 3.15, 0.8], look: [0, 0.4, 0], fov: 48 },

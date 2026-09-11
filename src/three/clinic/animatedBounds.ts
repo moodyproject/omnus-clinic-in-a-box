@@ -18,6 +18,8 @@ export function installAnimatedBounds(root: THREE.Group) {
   const point = new THREE.Vector3(), transform = new THREE.Matrix4()
   root.traverse(node => {
     if (!(node instanceof THREE.SkinnedMesh)) return
+    // Retired support skins stay owned for disposal, not per-frame bounds work.
+    if (node.userData.replacedByRobot || node.userData.retiredVisual) return
     node.frustumCulled = false
     const skeleton = node.skeleton
     let group = groups.get(skeleton)

@@ -100,7 +100,7 @@ export function CameraRig({ mobile, reducedMotion = false }: Props) {
       // Preserve the designed horizontal field at any phone aspect ratio.
       const aspect = size.width / size.height
       const roomFov = 2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(targetFov / 2)) * (390 / 844) / aspect)
-      const overview = swin(p, 0.74, 0.79) * (1 - swin(p, 0.85, 0.895))
+      const overview = swin(p, 0.765, 0.79) * (1 - swin(p, 0.85, 0.895))
       // Fit the 1.36-unit chassis plus balanced margins, not desktop's
       // deliberately asymmetric editorial composition.
       const fitFov = 2 * Math.atan(1.52 / (2 * state.targetPos.distanceTo(state.targetLook) * aspect))

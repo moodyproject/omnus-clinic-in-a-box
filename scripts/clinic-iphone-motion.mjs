@@ -10,7 +10,7 @@ try {
  for(const width of [390,1440]) for(const reducedMotion of ['reduce','no-preference']) {
   const page=await browser.newPage({viewport:{width,height:width===390?844:900},isMobile:width===390,hasTouch:width===390,deviceScaleFactor:width===390?3:1,reducedMotion})
   const errors=[];page.on('pageerror',e=>errors.push(String(e)))
-  await page.addInitScript(()=>{window.__qaRoots=new Set();window.__REACT_DEVTOOLS_GLOBAL_HOOK__={supportsFiber:true,inject:()=>1,onCommitFiberRoot:(_id,root)=>window.__qaRoots.add(root),onCommitFiberUnmount:()=>{},onPostCommitFiberRoot:()=>{}}})
+  await page.addInitScript(()=>{window.__qaRoots=new Set();const renderers=new Map();window.__REACT_DEVTOOLS_GLOBAL_HOOK__={supportsFiber:true,renderers,inject:renderer=>{const id=renderers.size+1;renderers.set(id,renderer);return id},onCommitFiberRoot:(_id,root)=>window.__qaRoots.add(root),onCommitFiberUnmount:()=>{},onPostCommitFiberRoot:()=>{}}})
   await page.goto(base,{waitUntil:'networkidle'})
   await page.waitForFunction(()=>{
    if(window.__omnus?.scene.getObjectByName('room-people')){window.__scene=window.__omnus;return true}

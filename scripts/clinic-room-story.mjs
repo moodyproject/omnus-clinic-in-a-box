@@ -1,0 +1,22 @@
+import assert from 'node:assert/strict'
+import fs from 'node:fs'
+import ts from 'typescript'
+const source=fs.readFileSync('src/content/copy.ts','utf8')
+const {outputText}=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2020}})
+const {scenes}=await import(`data:text/javascript;base64,${Buffer.from(outputText).toString('base64')}`)
+const byId=Object.fromEntries(scenes.map(scene=>[scene.id,scene]))
+assert.equal(scenes.length,8)
+assert(scenes.every(scene=>scene.side==='left'))
+assert.match(byId.enter.body,/robots represent omnus.*agents/)
+assert.match(byId.before.heading,/triage/)
+assert.match(byId.during.heading,/real-time ai/)
+assert.match(byId.review.heading,/physician sign-off/)
+assert.match(byId.review.body,/physician.*reviews.*approves/)
+assert.match(byId.after.heading,/follow-through/)
+assert.match(byId.after.body,/after physician approval/)
+assert.match(byId.after.body,/connected systems.*apis/)
+assert.equal(byId.before.stateLabel,'the system we’re building')
+assert.equal(byId.during.stateLabel,'working now')
+assert.equal(byId.after.stateLabel,'the system we’re building')
+assert.equal(byId.object.heading,'everything your clinic needs. inside one box.')
+console.log('PASS: room story, agent roles, physician authority, capability labels and left alignment')

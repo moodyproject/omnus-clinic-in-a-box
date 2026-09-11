@@ -2,6 +2,8 @@ import * as THREE from 'three'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js'
 import { installAnimatedBounds } from './animatedBounds'
+import { installRobotAgents } from './robotAgents'
+import { installFemaleVisitor } from './femaleVisitor'
 
 const ASSETS = ['clinic-shell', 'consultation', 'physician-seated', 'patient-seated', 'room-people'] as const
 
@@ -43,6 +45,10 @@ export async function loadAcceptedModel(base: string, cancelled: () => boolean) 
         node.matrixAutoUpdate = false
       })
       root.add(scene)
+      if (name === 'room-people') {
+        installFemaleVisitor(scene, root.getObjectByName('patient-seated')!)
+        installRobotAgents(scene)
+      }
       if (cancelled()) throw new Error('Clinic load cancelled')
     }
     installAnimatedBounds(root)

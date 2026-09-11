@@ -13,9 +13,9 @@ export const SCENES: Record<SceneId, { a: number; b: number }> = {
   enter: { a: 0.1, b: 0.26 },
   before: { a: 0.26, b: 0.38 },
   during: { a: 0.38, b: 0.52 },
-  review: { a: 0.52, b: 0.63 },
-  after: { a: 0.63, b: 0.74 },
-  ops: { a: 0.74, b: 0.85 },
+  review: { a: 0.52, b: 0.665 },
+  after: { a: 0.665, b: 0.79 },
+  ops: { a: 0.79, b: 0.85 },
   reveal: { a: 0.85, b: 1.0 },
 }
 

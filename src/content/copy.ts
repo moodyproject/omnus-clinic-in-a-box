@@ -34,10 +34,10 @@ export const scenes: SceneCopy[] = [
   {
     id: 'object',
     side: 'left',
-    eyebrow: 'the clinic operating system',
-    heading: 'everything your clinic needs. inside one box.',
+    eyebrow: 'the clinical ai workspace',
+    heading: 'your clinic. wherever you practice.',
     headingLevel: 1,
-    body: 'omnus brings the work of an independent clinic into one operating layer, so doctors can focus on being doctors.',
+    body: 'a complete clinical ai workspace, designed to run on your own hardware. charting, visits, record synthesis, decision support, and physician-approved orders — starting with hematology.',
     actions: true,
     status: 'working now: live visits, transcription, and clinical extraction',
   },
@@ -91,8 +91,8 @@ export const scenes: SceneCopy[] = [
   {
     id: 'reveal',
     side: 'left',
-    eyebrow: 'clinic in a box',
-    heading: 'one physician. one clinic operating system.',
+    eyebrow: 'the clinical ai workspace',
+    heading: 'one physician. one complete workspace.',
     headingLevel: 2,
     body: 'built for independent practices that want to spend less time operating software and more time practicing medicine.',
     actions: true,
@@ -116,11 +116,11 @@ export const actions = {
 export const conversion = {
   heading: 'see omnus in your clinic.',
   body: 'omnus gives independent physicians everything they need so a doctor can focus on being a doctor. walk through the system with us, or follow along as it grows.',
-  status: 'working today: live video visits, visit transcription, and clinical extraction. the rest of the operating system shown above is in active development.',
+  status: 'working today: live video visits, visit transcription, and clinical extraction. the rest of the workspace shown above is in active development.',
 }
 
 export const footer = {
-  line: 'the local intelligence layer for independent clinics.',
+  line: 'the clinical ai workspace for independent physicians.',
   fine: '© 2026 omnus. product states shown as “the system we’re building” are in development, not deployed.',
 }
 
@@ -165,6 +165,6 @@ export const misc = {
   skipToContent: 'skip to content',
   wordmark: 'omnus',
   fallbackNote:
-    'this page normally opens the omnus appliance into a miniature clinic. your browser can’t run that view, so here is the same story, told simply.',
+    'this page normally opens an omnus workstation into a miniature clinic. your browser can’t run that view, so here is the same story, told simply.',
   reducedNote: 'motion is reduced. the full journey is presented as steps.',
 }

@@ -548,17 +548,17 @@ export function makeContactShadowTexture(): THREE.CanvasTexture {
 }
 
 /** subtle machined lettering on the enclosure */
-export function makeEngravingTexture(): THREE.CanvasTexture {
+export function makeEngravingTexture(label = 'omnus', weight = 560): THREE.CanvasTexture {
   const { canvas, ctx } = makeCanvas(512, 160)
   ctx.clearRect(0, 0, 512, 160)
-  ctx.font = `560 92px ${FONT}`
+  ctx.font = `${weight} 92px ${FONT}`
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
   // shadowed inset lettering: darker fill with a faint top light edge
   ctx.fillStyle = 'rgba(0, 0, 0, 0.5)'
-  ctx.fillText('omnus', 256, 84)
+  ctx.fillText(label, 256, 84)
   ctx.fillStyle = 'rgba(251, 250, 247, 0.08)'
-  ctx.fillText('omnus', 256, 87)
+  ctx.fillText(label, 256, 87)
   return toTexture(canvas)
 }
 

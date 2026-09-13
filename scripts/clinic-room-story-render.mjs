@@ -3,7 +3,7 @@ import fs from 'node:fs'
 import puppeteer from 'puppeteer-core'
 const out='docs/evidence/room-story';fs.mkdirSync(out,{recursive:true})
 const base=process.env.BASE_URL||'http://127.0.0.1:4202/'
-const stages=[['enter',.19,'one physician. a team of ai agents.'],['before',.32,'triage & intake'],['during',.48,'real-time ai'],['review',.625,'physician sign-off'],['after',.725,'approved. then follow-through.'],['ops',.82,'one connected clinic.']]
+const stages=[['object',0,'your clinic. wherever you practice.'],['enter',.19,'one physician. a team of ai agents.'],['before',.32,'triage & intake'],['during',.48,'real-time ai'],['review',.625,'physician sign-off'],['after',.725,'approved. then follow-through.'],['ops',.82,'one connected clinic.'],['reveal',1,'one physician. one complete workspace.']]
 const rows=[],browser=await puppeteer.launch({executablePath:'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',headless:true})
 try {
  for(const width of [1440,390]) {
@@ -23,5 +23,5 @@ try {
   await page.close()
  }
 } finally {await browser.close()}
-assert.equal(new Set(rows.map(r=>`${r.width}:${r.id}`)).size,12)
-console.log('PASS: all six revised panels visible and within desktop/phone-width viewports')
+assert.equal(new Set(rows.map(r=>`${r.width}:${r.id}`)).size,stages.length*2)
+console.log(`PASS: ${rows.length} room/hero/reveal checks within desktop/phone-width viewports`)

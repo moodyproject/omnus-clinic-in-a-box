@@ -7,12 +7,12 @@ fs.mkdirSync(out, { recursive: true })
 try {
   const page = await browser.newPage()
   await page.setViewport({width:1440,height:900})
-  await page.goto('http://127.0.0.1:4198/?pose=0', { waitUntil: 'networkidle0' })
+  await page.goto(`${process.env.BASE_URL||'http://127.0.0.1:4202/'}?pose=0`, { waitUntil: 'networkidle0' })
   await page.waitForFunction(() => window.__omnus?.scene)
   const result = await page.evaluate(() => {
     const scene = window.__omnus.scene, rows = []
     scene.traverse(n => {
-      if (!n.name.startsWith('exterior-')) return
+      if (!n.name.startsWith('exterior-') && !['reference-housing','reference-front-panel','reference-panel-seam','reference-slot-grille'].includes(n.name)) return
       if (n.isMesh) {
         const g = n.geometry
         g.computeBoundingBox()
@@ -25,11 +25,12 @@ try {
     return rows
   })
   fs.writeFileSync(`${out}/${process.argv[2]||'after'}.json`,JSON.stringify(result,null,2))
-  assert.equal(result.filter(r=>r.name==='exterior-seam').length,2,'two consistently machined fascia/chassis seams')
-  assert.equal(result.filter(r=>r.name==='exterior-vent-fins').length,3,'three matching side/rear ventilation bands')
-  assert.equal(result.filter(r=>r.name==='exterior-top-slot').length,1)
-  assert.ok(result.every(r=>r.obliqueNormals>0),'all exterior detail geometry needs rounded edges, not sharp boxes')
-  assert.ok(result.filter(r=>r.name==='exterior-vent-fins').every(r=>r.count===30))
+  assert.equal(result.filter(r=>r.name==='reference-panel-seam').length,1,'reference perimeter seam')
+  assert.equal(result.filter(r=>r.name==='reference-slot-grille').length,2,'matching horizontal side grilles')
+  assert.equal(result.filter(r=>r.name==='exterior-top-slot').length,0,'reference top stays unbroken')
+  assert.ok(result.filter(r=>r.name.startsWith('exterior-')).every(r=>r.obliqueNormals>0),'retained rear ports have machined edges')
+  assert.ok(result.filter(r=>r.name==='reference-slot-grille').every(r=>r.count===70))
+  assert.ok(result.some(r=>r.name==='reference-housing'&&r.type==='ExtrudeGeometry'&&r.obliqueNormals>0),'clipped, beveled housing')
   console.log(JSON.stringify(result))
   await page.screenshot({path:`${out}/desktop.png`})
   await page.setViewport({width:390,height:844,isMobile:true})

@@ -1,12 +1,18 @@
 import * as THREE from 'three'
-const chartUpdates = new WeakMap<THREE.Object3D, (p: number) => void>()
+import { createChartGrip } from './chartGrip'
+type ChartUpdate = ((p: number) => void) & { restore: () => void }
+const chartUpdates = new WeakMap<THREE.Object3D, ChartUpdate>()
 
 /** Illustrative paper-sized clinical chart. Textures are baked once, never on scroll. */
 export function addPhysicianChart(actor: THREE.Object3D) {
   const existing = chartUpdates.get(actor)
   if (existing) return existing
   const wrists: THREE.Bone[] = []
+  const hand = new Map<string, THREE.Bone>()
   actor.traverse(node => { if (node instanceof THREE.Bone && ['wrist.L', 'wrist.R'].includes(node.userData.name ?? node.name)) wrists.push(node) })
+  actor.traverse(node => { if (node instanceof THREE.Bone) hand.set(node.userData.name ?? node.name, node) })
+  const palms = [hand.get('finger3-1.L')!, hand.get('finger3-1.R')!]
+  const hold = createChartGrip(actor, hand)
   const chart = new THREE.Group()
   chart.name = 'physician-clinical-chart'
   const frame = new THREE.Mesh(new THREE.BoxGeometry(.43, .018, .31), new THREE.MeshStandardMaterial({ color: '#34483f', roughness: .85 }))
@@ -29,6 +35,7 @@ export function addPhysicianChart(actor: THREE.Object3D) {
   })
   actor.add(chart)
   const a = new THREE.Vector3(), b = new THREE.Vector3(), orientation = new THREE.Quaternion()
+  const gripOffset = new THREE.Vector3()
   chart.visible = false
   const update = (p: number) => {
     chart.visible = (p >= .618 && p <= .658) || (p >= .718 && p <= .779)
@@ -42,10 +49,18 @@ export function addPhysicianChart(actor: THREE.Object3D) {
     let armature: THREE.Object3D | null = rig
     while (armature?.parent && armature.parent !== actor) armature = armature.parent
     if (armature) { armature.getWorldQuaternion(orientation); chart.quaternion.copy(orientation) }
+    if (p >= .718) {
+      palms[0].getWorldPosition(a);palms[1].getWorldPosition(b)
+      actor.worldToLocal(a.add(b).multiplyScalar(.5))
+      gripOffset.set(0, .04, .15).applyQuaternion(chart.quaternion)
+      chart.position.copy(a).add(gripOffset)
+      hold(chart)
+    }
     const state = p < .635 ? 0 : p < .646 ? 1 : p < .66 ? 2 : p < .741 ? 3 : p < .757 ? 4 : 5
     screens.forEach((screen, index) => { screen.visible = index === state })
     chart.userData.state = labels[state]
   }
-  chartUpdates.set(actor, update)
-  return update
+  const ownedUpdate = Object.assign(update, { restore: hold.restore })
+  chartUpdates.set(actor, ownedUpdate)
+  return ownedUpdate
 }

@@ -5,6 +5,7 @@ import { Studio } from './Studio'
 import { Appliance } from './appliance/Appliance'
 import { AcceptedClinic } from './clinic/AcceptedClinic'
 import { CameraRig } from './CameraRig'
+import { MobileResolution } from './MobileResolution'
 import type { Quality } from '../hooks/useMediaFlags'
 import type { SceneFailure } from '../lib/sceneFailure'
 import { subscribeJourney } from '../scroll/journey'
@@ -99,6 +100,7 @@ export function Experience({ quality, mobile, reducedMotion, active, onReady, on
         <Appliance quality={quality} mobile={mobile} reducedMotion={reducedMotion} />
         <AcceptedClinic onError={onError} />
         <CameraRig mobile={mobile} reducedMotion={reducedMotion} />
+        <MobileResolution mobile={mobile} active={active} quality={quality} />
         <SceneDriver active={active} onReady={onReady} onError={onError} />
       </Canvas>
       </SceneBoundary>

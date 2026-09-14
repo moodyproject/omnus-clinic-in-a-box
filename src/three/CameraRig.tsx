@@ -88,7 +88,7 @@ export function CameraRig({ mobile, reducedMotion = false }: Props) {
       smoothedState.p = journeyState.p
       journeyState.snap = false
     } else {
-      smoothedState.p = damp(smoothedState.p, journeyState.p, 7.5, dt)
+      smoothedState.p = damp(smoothedState.p, journeyState.p, mobile ? 15 : 7.5, dt)
       if (Math.abs(smoothedState.p - journeyState.p) < 1e-8) smoothedState.p = journeyState.p
     }
     const p = smoothedState.p
@@ -134,7 +134,7 @@ export function CameraRig({ mobile, reducedMotion = false }: Props) {
         targetFov = THREE.MathUtils.lerp(targetFov, Math.max(targetFov, fittedFov), exteriorFit)
       }
       const offset = size.height / 2 - center
-      state.offsetY = state.initialized && !reducedMotion ? damp(state.offsetY, offset, 7.5, dt) : offset
+      state.offsetY = state.initialized && !reducedMotion ? damp(state.offsetY, offset, 15, dt) : offset
       offsetPending = Math.abs(state.offsetY - offset) > 0.01
       if (!offsetPending) state.offsetY = offset
       camera.setViewOffset(size.width, size.height, 0, state.offsetY, size.width, size.height)
@@ -195,9 +195,10 @@ export function CameraRig({ mobile, reducedMotion = false }: Props) {
       state.fov = targetFov
       state.initialized = true
     } else {
-      dampV3(state.pos, state.targetPos, 5.5, dt)
-      dampV3(state.look, state.targetLook, 5.5, dt)
-      state.fov = damp(state.fov, targetFov, 5.5, dt)
+      const response = mobile ? 11 : 5.5
+      dampV3(state.pos, state.targetPos, response, dt)
+      dampV3(state.look, state.targetLook, response, dt)
+      state.fov = damp(state.fov, targetFov, response, dt)
     }
 
     // Demand mode must finish every damping layer, not just progress. Once

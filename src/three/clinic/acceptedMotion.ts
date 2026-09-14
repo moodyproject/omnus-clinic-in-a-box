@@ -2,6 +2,8 @@ import * as THREE from 'three'
 import { addPatientIntakeTablet, seatedPatientClip } from './patientActivity'
 import { addPhysicianChart } from './physicianActivity'
 import { createRobotTyping } from './robotTyping'
+import { createTranscriptionAgent } from './transcriptionAgent'
+import { createWalkingArms } from './walkingArms'
 
 type Angles = readonly [number, number, number]
 type Pose = Partial<Record<string, Angles>>
@@ -135,14 +137,34 @@ function withReadableGestures(child: THREE.Object3D, source: THREE.AnimationClip
       clip.tracks.push(new THREE.QuaternionKeyframeTrack(trackName, times, values))
     }
   }
+  if (child.name === 'physician-seated') {
+    const heldBones = new Set<string>()
+    child.traverse(node => {
+      if (node instanceof THREE.Bone && /^(clavicle|shoulder|upperarm|lowerarm|wrist|finger|metacarpal)/.test(node.userData.name ?? node.name)) heldBones.add(node.name)
+    })
+    for (const track of clip.tracks) {
+      if (!track.name.endsWith('.quaternion') || !heldBones.has(track.name.slice(0, -11))) continue
+      const sampler = new THREE.QuaternionLinearInterpolant(track.times, track.values.slice(), 4)
+      const held = new THREE.Quaternion().fromArray(sampler.evaluate(.72 * source.duration))
+      for (let i = 0; i < track.times.length; i++) {
+        const p = track.times[i] / source.duration
+        const blend = Math.min(THREE.MathUtils.smoothstep(p, .710, .718), 1 - THREE.MathUtils.smoothstep(p, .779, .787))
+        if (blend > 0) q.fromArray(track.values, i * 4).slerp(held, blend).toArray(track.values, i * 4)
+      }
+    }
+  }
   return clip
 }
 
 /** Seek owned authored clips, never accumulate wall-clock time or overlays. */
 export function createAcceptedMotion(root: THREE.Group) {
   const updateRobots = createRobotTyping(root)
+  const updateScribe = root.getObjectByName('physician-seated') ? createTranscriptionAgent(root) : undefined
   const doctor = root.getObjectByName('physician-seated')
   const updateChart = doctor ? addPhysicianChart(doctor) : undefined
+  const walkingArms = doctor ? createWalkingArms(doctor) : undefined
+  updateChart?.restore()
+  walkingArms?.restore()
   const entries = root.children.filter((child) => child.animations.length > 0).map((child) => {
     const mixer = new THREE.AnimationMixer(child)
     const actions = child.animations.map((clip) => {
@@ -165,6 +187,8 @@ export function createAcceptedMotion(root: THREE.Group) {
       const p = THREE.MathUtils.clamp(progress, 0, 1)
       if (p === previous) return
       previous = p
+      updateChart?.restore()
+      walkingArms?.restore()
       for (const { mixer, actions } of entries) {
         for (const action of actions) {
           action.paused = false
@@ -172,10 +196,14 @@ export function createAcceptedMotion(root: THREE.Group) {
         }
         mixer.update(0)
       }
+      walkingArms?.update(p)
       updateChart?.(p)
       updateRobots(p)
+      updateScribe?.(p)
     },
     dispose() {
+      updateChart?.restore()
+      walkingArms?.restore()
       for (const { child, mixer } of entries) {
         mixer.stopAllAction()
         mixer.uncacheRoot(child)

@@ -32,7 +32,7 @@ export function createChartGrip(actor: THREE.Object3D, bones: Map<string, THREE.
     for (const [bone, pose] of original) bone.quaternion.copy(pose)
     applied = false
   }
-  const update = (chart: THREE.Object3D) => {
+  const update = (chart: THREE.Object3D, weight = 1) => {
     for (const [bone, pose] of original) pose.copy(bone.quaternion)
     applied = true
     chart.updateWorldMatrix(true, false)
@@ -102,6 +102,9 @@ export function createChartGrip(actor: THREE.Object3D, bones: Map<string, THREE.
       }
       }
     }
+    // Reach into and release the solved hold instead of switching constraints
+    // at the frame where the illustrated chart becomes visible.
+    if (weight < 1) for (const [bone, pose] of original) bone.quaternion.slerp(pose, 1 - weight)
     actor.updateMatrixWorld(true)
   }
   return Object.assign(update, { restore })

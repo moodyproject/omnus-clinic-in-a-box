@@ -34,12 +34,22 @@ export function addPhysicianChart(actor: THREE.Object3D) {
     chart.add(screen); return screen
   })
   actor.add(chart)
+  const materials = [frame.material, ...screens.map(screen => screen.material)]
+  materials.forEach(material => { material.transparent = true })
   const a = new THREE.Vector3(), b = new THREE.Vector3(), orientation = new THREE.Quaternion()
   const gripOffset = new THREE.Vector3()
   chart.visible = false
   const update = (p: number) => {
-    chart.visible = (p >= .618 && p <= .658) || (p >= .718 && p <= .779)
-    if (!chart.visible || wrists.length !== 2) return
+    // This is an illustrative workflow overlay, not a literal paper transfer.
+    // Reveal only after the hands settle; fade before the release begins.
+    const opacity = Math.max(
+      THREE.MathUtils.smoothstep(p, .618, .624) * (1 - THREE.MathUtils.smoothstep(p, .652, .658)),
+      THREE.MathUtils.smoothstep(p, .718, .724) * (1 - THREE.MathUtils.smoothstep(p, .773, .779)),
+    )
+    materials.forEach(material => { material.opacity = opacity; material.depthWrite = opacity === 1 })
+    chart.visible = opacity > 0
+    const holdWeight = THREE.MathUtils.smoothstep(p, .710, .718) * (1 - THREE.MathUtils.smoothstep(p, .779, .789))
+    if ((!chart.visible && holdWeight === 0) || wrists.length !== 2) return
     actor.updateMatrixWorld(true)
     wrists[0].getWorldPosition(a); wrists[1].getWorldPosition(b)
     actor.worldToLocal(a.add(b).multiplyScalar(.5)); a.y -= .025
@@ -49,12 +59,12 @@ export function addPhysicianChart(actor: THREE.Object3D) {
     let armature: THREE.Object3D | null = rig
     while (armature?.parent && armature.parent !== actor) armature = armature.parent
     if (armature) { armature.getWorldQuaternion(orientation); chart.quaternion.copy(orientation) }
-    if (p >= .718) {
+    if (holdWeight > 0) {
       palms[0].getWorldPosition(a);palms[1].getWorldPosition(b)
       actor.worldToLocal(a.add(b).multiplyScalar(.5))
       gripOffset.set(0, .04, .15).applyQuaternion(chart.quaternion)
       chart.position.copy(a).add(gripOffset)
-      hold(chart)
+      hold(chart, holdWeight)
     }
     const state = p < .635 ? 0 : p < .646 ? 1 : p < .66 ? 2 : p < .741 ? 3 : p < .757 ? 4 : 5
     screens.forEach((screen, index) => { screen.visible = index === state })

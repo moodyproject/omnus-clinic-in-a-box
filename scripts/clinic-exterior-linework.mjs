@@ -19,18 +19,19 @@ try {
         let obliqueNormals = 0
         const normal = g.attributes.normal
         for (let i=0;i<normal.count;i++) if ([normal.getX(i),normal.getY(i),normal.getZ(i)].filter(v=>Math.abs(v)>0.01).length>1) obliqueNormals++
-        rows.push({ name:n.name, type:g.type, obliqueNormals, count:n.count??1, bounds:{min:g.boundingBox.min.toArray(),max:g.boundingBox.max.toArray()} })
+        rows.push({ name:n.name, type:g.type, bevelSegments:g.parameters?.options?.bevelSegments, curveSegments:g.parameters?.options?.curveSegments, obliqueNormals, count:n.count??1, bounds:{min:g.boundingBox.min.toArray(),max:g.boundingBox.max.toArray()} })
       }
     })
     return rows
   })
   fs.writeFileSync(`${out}/${process.argv[2]||'after'}.json`,JSON.stringify(result,null,2))
-  assert.equal(result.filter(r=>r.name==='reference-panel-seam').length,1,'reference perimeter seam')
-  assert.equal(result.filter(r=>r.name==='reference-slot-grille').length,2,'matching horizontal side grilles')
-  assert.equal(result.filter(r=>r.name==='exterior-top-slot').length,0,'reference top stays unbroken')
+  assert.equal(result.filter(r=>r.name==='reference-panel-seam').length,0,'no chrome perimeter seam')
+  assert.equal(result.filter(r=>r.name==='reference-slot-grille').length,0,'no chrome horizontal slot grille')
+  assert.equal(result.filter(r=>r.name==='exterior-top-slot').length,1,'historical rear top vent')
   assert.ok(result.filter(r=>r.name.startsWith('exterior-')).every(r=>r.obliqueNormals>0),'retained rear ports have machined edges')
-  assert.ok(result.filter(r=>r.name==='reference-slot-grille').every(r=>r.count===70))
-  assert.ok(result.some(r=>r.name==='reference-housing'&&r.type==='ExtrudeGeometry'&&r.obliqueNormals>0),'clipped, beveled housing')
+  assert.equal(result.filter(r=>r.name==='exterior-vent-fins').length,3,'vertical fin bands on both sides and rear')
+  assert.ok(result.filter(r=>r.name==='exterior-vent-fins').every(r=>r.count===30||r.count===18))
+  assert.ok(result.some(r=>r.name==='reference-housing'&&r.type==='ExtrudeGeometry'&&r.bevelSegments===8&&r.curveSegments===6&&r.obliqueNormals>0),'historical rounded housing, not single-segment clipped chrome')
   console.log(JSON.stringify(result))
   await page.screenshot({path:`${out}/desktop.png`})
   await page.setViewport({width:390,height:844,isMobile:true})

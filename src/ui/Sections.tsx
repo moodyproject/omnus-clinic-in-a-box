@@ -38,7 +38,7 @@ export function Footer({ onNavigate }: { onNavigate: (target: string) => void })
           <span className="wordmark">{misc.wordmark}</span>
           <span className="footer-line">{footer.line}</span>
         </div>
-        <nav className="footer-links" aria-label="footer">
+        <nav className="footer-links" aria-label="Footer">
           {nav.links.map((link) => (
             <button
               key={link.target}

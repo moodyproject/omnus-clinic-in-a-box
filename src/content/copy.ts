@@ -15,6 +15,12 @@ export type SceneId =
 
 export type StateLabel = 'working now' | 'now expanding' | 'the system we’re building'
 
+export const stateLabels: Record<StateLabel, string> = {
+  'working now': 'Working now',
+  'now expanding': 'Now expanding',
+  'the system we’re building': 'The system we’re building',
+}
+
 export interface SceneCopy {
   id: SceneId
   /** which side of the frame the copy column occupies on desktop */
@@ -34,137 +40,137 @@ export const scenes: SceneCopy[] = [
   {
     id: 'object',
     side: 'left',
-    eyebrow: 'the clinical ai workspace',
-    heading: 'your clinic. wherever you practice.',
+    eyebrow: 'The clinical AI workspace',
+    heading: 'Your clinic. Wherever you practice.',
     headingLevel: 1,
-    body: 'a complete clinical ai workspace, designed to run on your own hardware. charting, visits, record synthesis, decision support, and physician-approved orders — starting with hematology.',
+    body: 'A complete clinical AI workspace, designed to run on your own hardware. Charting, visits, record synthesis, decision support, and physician-approved orders, starting with hematology.',
     actions: true,
-    status: 'working now: live visits, transcription, and clinical extraction',
+    status: 'Working now: live visits, transcription, and clinical extraction',
   },
   {
     id: 'enter',
     side: 'left',
-    heading: 'one physician. a team of ai agents.',
+    heading: 'One physician. A team of AI agents.',
     headingLevel: 2,
-    body: 'the doctor and patient are human. the robots represent omnus ai agents, supporting the work around each visit. clinical decisions stay with the physician.',
+    body: 'The doctor and patient are human. The robots represent Omnus AI agents, supporting the work around each visit. Clinical decisions stay with the physician.',
   },
   {
     id: 'before',
     side: 'left',
-    heading: 'triage & intake',
+    heading: 'Triage & intake',
     headingLevel: 2,
-    body: 'agents are designed to organize intake, flag what needs attention, and assemble the patient’s history before the physician walks in.',
+    body: 'Agents are designed to organize intake, flag what needs attention, and assemble the patient’s history before the physician walks in.',
     stateLabel: 'the system we’re building',
   },
   {
     id: 'during',
     side: 'left',
-    heading: 'real-time ai',
+    heading: 'Real-time AI',
     headingLevel: 2,
-    body: 'the doctor focuses on the patient. omnus transcribes the visit and extracts clinical details from the conversation as it happens.',
+    body: 'The doctor focuses on the patient. Omnus transcribes the visit and extracts clinical details from the conversation as it happens.',
     stateLabel: 'working now',
   },
   {
     id: 'review',
     side: 'left',
-    heading: 'physician sign-off',
+    heading: 'Physician sign-off',
     headingLevel: 2,
-    body: 'omnus prepares the draft. the physician reviews, corrects, and approves what becomes final. the agents assist; the doctor decides.',
+    body: 'Omnus prepares the draft. The physician reviews, corrects, and approves what becomes final. The agents assist; the doctor decides.',
     stateLabel: 'now expanding',
   },
   {
     id: 'after',
     side: 'left',
-    heading: 'approved. then follow-through.',
+    heading: 'Approved. Then follow-through.',
     headingLevel: 2,
-    body: 'after physician approval, agents are designed to coordinate referrals and follow-up through connected systems and apis.',
+    body: 'After physician approval, agents are designed to coordinate referrals and follow-up through connected systems and APIs.',
     stateLabel: 'the system we’re building',
   },
   {
     id: 'ops',
     side: 'left',
-    heading: 'one connected clinic.',
+    heading: 'One connected clinic.',
     headingLevel: 2,
-    body: 'from triage to follow-through, one local operating layer connects the agents, the visit, and the work around it. the physician leads the care.',
+    body: 'From triage to follow-through, one local operating layer connects the agents, the visit, and the work around it. The physician leads the care.',
     stateLabel: 'the system we’re building',
   },
   {
     id: 'reveal',
     side: 'left',
-    eyebrow: 'the clinical ai workspace',
-    heading: 'one physician. one complete workspace.',
+    eyebrow: 'The clinical AI workspace',
+    heading: 'One physician. One complete workspace.',
     headingLevel: 2,
-    body: 'built for independent practices that want to spend less time operating software and more time practicing medicine.',
+    body: 'Built for independent practices that want to spend less time operating software and more time practicing medicine.',
     actions: true,
   },
 ]
 
 export const nav = {
   links: [
-    { label: 'product', target: 'product' },
-    { label: 'vision', target: 'vision' },
-    { label: 'contact', target: 'contact' },
+    { label: 'Product', target: 'product' },
+    { label: 'Vision', target: 'vision' },
+    { label: 'Contact', target: 'contact' },
   ],
-  cta: 'book a demo',
+  cta: 'Book a demo',
 }
 
 export const actions = {
-  primary: 'book a demo',
-  secondary: 'join the waitlist',
+  primary: 'Book a demo',
+  secondary: 'Join the waitlist',
 }
 
 export const conversion = {
-  heading: 'see omnus in your clinic.',
-  body: 'omnus gives independent physicians everything they need so a doctor can focus on being a doctor. walk through the system with us, or follow along as it grows.',
-  status: 'working today: live video visits, visit transcription, and clinical extraction. the rest of the workspace shown above is in active development.',
+  heading: 'See Omnus in your clinic.',
+  body: 'Omnus gives independent physicians everything they need so a doctor can focus on being a doctor. Walk through the system with us, or follow along as it grows.',
+  status: 'Working today: live video visits, visit transcription, and clinical extraction. The rest of the workspace shown above is in active development.',
 }
 
 export const footer = {
-  line: 'the clinical ai workspace for independent physicians.',
-  fine: '© 2026 omnus. product states shown as “the system we’re building” are in development, not deployed.',
+  line: 'The clinical AI workspace for independent physicians.',
+  fine: '© 2026 Omnus. Product states shown as “The system we’re building” are in development, not deployed.',
 }
 
 export const forms = {
   demo: {
-    title: 'book a demo',
-    intro: 'tell us a little about your practice and we’ll set up a walkthrough.',
+    title: 'Book a demo',
+    intro: 'Tell us a little about your practice and we’ll set up a walkthrough.',
     fields: {
-      name: 'name',
-      email: 'work email',
-      organization: 'organization or clinic',
-      role: 'role',
-      message: 'anything specific you want to see?',
+      name: 'Name',
+      email: 'Work email',
+      organization: 'Organization or clinic',
+      role: 'Role',
+      message: 'Anything specific you want to see?',
     },
-    submit: 'request a demo',
-    success: 'thank you. we’ll reach out to schedule your walkthrough.',
+    submit: 'Request a demo',
+    success: 'Thank you. We’ll reach out to schedule your walkthrough.',
   },
   waitlist: {
-    title: 'join the waitlist',
-    intro: 'be first in line as omnus expands beyond the visit.',
+    title: 'Join the waitlist',
+    intro: 'Be first in line as Omnus expands beyond the visit.',
     fields: {
-      email: 'email',
-      role: 'role',
+      email: 'Email',
+      role: 'Role',
     },
-    submit: 'join the waitlist',
-    success: 'you’re on the list. we’ll keep you posted.',
+    submit: 'Join the waitlist',
+    success: 'You’re on the list. We’ll keep you posted.',
   },
   roles: ['physician', 'clinic owner', 'practice manager', 'clinical staff', 'investor', 'other'],
-  localMode: 'local test mode: nothing was sent. connect an endpoint to go live.',
+  localMode: 'Local test mode: nothing was sent. Connect an endpoint to go live.',
   notConfigured:
-    'this deployment isn’t connected to a submission endpoint yet, so we can’t receive your request here. please check back soon.',
+    'This deployment isn’t connected to a submission endpoint yet, so we can’t receive your request here. Please check back soon.',
   errors: {
-    required: 'this field is required.',
-    email: 'please enter a valid email address.',
-    network: 'we couldn’t send that right now. please try again in a moment.',
+    required: 'This field is required.',
+    email: 'Please enter a valid email address.',
+    network: 'We couldn’t send that right now. Please try again in a moment.',
   },
 }
 
 export const misc = {
-  scrollCue: 'scroll to open',
-  skip: 'skip the tour',
-  skipToContent: 'skip to content',
-  wordmark: 'omnus',
+  scrollCue: 'Scroll to open',
+  skip: 'Skip the tour',
+  skipToContent: 'Skip to content',
+  wordmark: 'Omnus',
   fallbackNote:
-    'this page normally opens an omnus workstation into a miniature clinic. your browser can’t run that view, so here is the same story, told simply.',
-  reducedNote: 'motion is reduced. the full journey is presented as steps.',
+    'This page normally opens an Omnus workstation into a miniature clinic. Your browser can’t run that view, so here is the same story, told simply.',
+  reducedNote: 'Motion is reduced. The full journey is presented as steps.',
 }

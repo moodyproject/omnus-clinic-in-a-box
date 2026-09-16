@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { scenes, actions, type SceneCopy } from '../content/copy'
+import { scenes, actions, stateLabels, type SceneCopy } from '../content/copy'
 import { SCENES, POSE } from '../scroll/journey'
 
 gsap.registerPlugin(ScrollTrigger)
@@ -37,7 +37,7 @@ function CopyBlock({
         {scene.stateLabel && (
           <span className="state-chip" data-state={scene.stateLabel}>
             <span className="dot" aria-hidden="true" />
-            {scene.stateLabel}
+            {stateLabels[scene.stateLabel]}
           </span>
         )}
         {scene.eyebrow && <span className="eyebrow">{scene.eyebrow}</span>}

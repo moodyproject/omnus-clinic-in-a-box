@@ -79,7 +79,7 @@ export function Modal({ title, intro, onClose, children, labelId }: Props) {
           <h2 className="modal-title" id={labelId}>
             {title}
           </h2>
-          <button className="modal-close" onClick={onClose} aria-label="close dialog">
+          <button className="modal-close" onClick={onClose} aria-label="Close dialog">
             <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
               <path d="M1 1l10 10M11 1L1 11" stroke="currentColor" strokeWidth="1.4" />
             </svg>

@@ -146,7 +146,7 @@ export function Journey({ quality, mobile, reducedMotion, failure, attempts, onR
       className="journey"
       ref={sectionRef}
       style={{ height: `${vh}vh` }}
-      aria-label="the omnus journey: from workstation to clinic and back"
+      aria-label="The Omnus journey: from workstation to clinic and back"
     >
       <div className="journey-viewport" ref={viewportRef}>
         {failure ? (

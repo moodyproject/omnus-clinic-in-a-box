@@ -389,14 +389,14 @@ function drawStatus(): THREE.CanvasTexture {
   ctx.fillStyle = 'rgba(240, 238, 231, 0.82)'
   ctx.font = `500 38px ${FONT}`
   ctx.textBaseline = 'middle'
-  ctx.fillText('omnus os', 44, 64)
+  ctx.fillText('Omnus OS', 44, 64)
   ctx.fillStyle = S.sage
   ctx.beginPath()
   ctx.arc(330, 64, 7, 0, Math.PI * 2)
   ctx.fill()
   ctx.fillStyle = 'rgba(240, 238, 231, 0.52)'
   ctx.font = `500 27px ${FONT}`
-  ctx.fillText('ready', 354, 65)
+  ctx.fillText('Ready', 354, 65)
   return toTexture(canvas)
 }
 

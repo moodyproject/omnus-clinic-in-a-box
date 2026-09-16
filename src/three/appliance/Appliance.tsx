@@ -4,13 +4,12 @@ import { useFrame } from '@react-three/fiber'
 import { RoundedBox } from '@react-three/drei'
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js'
 import { getMaterials } from '../materials'
-import { ReferenceShell } from './ReferenceShell'
-import { useReferenceFinish } from './referenceFinish'
 import { DEVICE, SLEEVE_BASE } from '../constants'
 import { smoothedState, shellOpen, capLift, swin } from '../../scroll/journey'
 import {
   makeContactShadowTexture,
   makeEngravingTexture,
+  makeScreenTexture,
   useFontsReady,
 } from '../textures'
 import type { Quality } from '../../hooks/useMediaFlags'
@@ -29,6 +28,39 @@ function ExteriorDetail({ name, size, position, material, radius = 0.001 }: {
   const geometry = useMemo(() => new RoundedBoxGeometry(w, h, d, 1, radius), [w, h, d, radius])
   useEffect(() => () => geometry.dispose(), [geometry])
   return <mesh name={name} position={position} geometry={geometry} material={material} dispose={null} />
+}
+
+/**
+ * a precise ventilation band: fine vertical fins inside a recessed channel.
+ * used on the sleeve's side and rear faces, never the front.
+ */
+function VentBand({ count, width, trim }: { count: number; width: number; trim: THREE.Material }) {
+  const mats = getMaterials()
+  const dummy = useMemo(() => new THREE.Object3D(), [])
+  const geometry = useMemo(() => new RoundedBoxGeometry(0.01, 0.196, 0.008, 1, 0.003), [])
+  useEffect(() => () => geometry.dispose(), [geometry])
+
+  const setLayout = (mesh: THREE.InstancedMesh | null) => {
+    if (!mesh) return
+    const span = width - 0.06
+    for (let i = 0; i < count; i++) {
+      const x = -span / 2 + (span / (count - 1)) * i
+      dummy.position.set(x, 0, 0.005)
+      dummy.rotation.set(0, 0, 0)
+      dummy.scale.set(1, 1, 1)
+      dummy.updateMatrix()
+      mesh.setMatrixAt(i, dummy.matrix)
+    }
+    mesh.instanceMatrix.needsUpdate = true
+  }
+
+  return (
+    <group>
+      <ExteriorDetail name="exterior-vent-frame" size={[width, 0.24, 0.008]} position={[0, 0, -0.004]} material={trim} radius={0.004} />
+      <ExteriorDetail name="exterior-vent-inset" size={[width - 0.012, 0.224, 0.003]} position={[0, 0, 0.001]} material={mats.inset} />
+      <instancedMesh name="exterior-vent-fins" ref={setLayout} args={[geometry, mats.fin, count]} dispose={null} />
+    </group>
+  )
 }
 
 /** ribs on the sleeve's underside: the vents reorganized as ceiling structure */
@@ -55,30 +87,38 @@ function CeilingRibs({ count }: { count: number }) {
 
 export function Appliance({ quality, mobile = false, reducedMotion = false }: { quality: Quality; mobile?: boolean; reducedMotion?: boolean }) {
   const mats = getMaterials()
-  const finish = useReferenceFinish()
+  const exteriorTrim = useMemo(() => {
+    const material = mats.shellTrim.clone()
+    material.color.set('#42474c')
+    material.roughness = 0.5
+    return material
+  }, [mats])
+  useEffect(() => () => exteriorTrim.dispose(), [exteriorTrim])
   const fontsReady = useFontsReady()
   const sleeveRef = useRef<THREE.Group>(null)
   const ledMat = useMemo(
     () =>
       new THREE.MeshStandardMaterial({
-        color: '#ffffff',
-        emissive: '#ffffff',
+        color: '#6f8f83',
+        emissive: '#6f8f83',
         emissiveIntensity: 1.6,
         toneMapped: false,
       }),
     [],
   )
 
+  const statusTexture = useMemo(() => makeScreenTexture('status'), [fontsReady]) // eslint-disable-line react-hooks/exhaustive-deps
   const engraving = useMemo(() => makeEngravingTexture('Omnus', 400), [fontsReady]) // eslint-disable-line react-hooks/exhaustive-deps
   const contactShadow = useMemo(() => makeContactShadowTexture(), [])
 
   useEffect(
     () => () => {
+      statusTexture.dispose()
       engraving.dispose()
       contactShadow.dispose()
       ledMat.dispose()
     },
-    [engraving, contactShadow, ledMat],
+    [statusTexture, engraving, contactShadow, ledMat],
   )
 
   useFrame(() => {
@@ -100,6 +140,7 @@ export function Appliance({ quality, mobile = false, reducedMotion = false }: { 
   })
 
   const shadows = quality.shadows
+  const finCount = quality.tier === 'high' ? 30 : 18
 
   return (
     <group>
@@ -123,23 +164,36 @@ export function Appliance({ quality, mobile = false, reducedMotion = false }: { 
         radius={0.03}
         smoothness={4}
         position={[0, DEVICE.footH + DEVICE.chassisH / 2, 0]}
-        material={finish.silver}
+        material={mats.chassis}
         castShadow={shadows}
         receiveShadow={shadows}
       />
-      {/* dark base junction below the unchanged clinic floor */}
-      <RoundedBox
-        name="reference-base-gap"
-        args={[DEVICE.w - 0.035, 0.008, DEVICE.d - 0.035]}
-        radius={0.003}
-        smoothness={3}
-        position={[0, SLEEVE_BASE - 0.005, 0]}
-        material={finish.dark}
+      {/* chassis front: hairline reveal plus the sage standby light */}
+      <mesh
+        position={[-0.42, DEVICE.footH + DEVICE.chassisH - 0.028, DEVICE.d / 2 - 0.024]}
+        material={ledMat}
+      >
+        <boxGeometry args={[0.05, 0.006, 0.004]} />
+      </mesh>
+      <ExteriorDetail
+        name="exterior-seam"
+        position={[0, DEVICE.footH + 0.03, DEVICE.d / 2 - 0.0245]}
+        material={exteriorTrim}
+        size={[DEVICE.w - 0.14, 0.0035, 0.002]}
       />
 
       {/* the one-piece anodized sleeve, lifted by the journey */}
       <group ref={sleeveRef}>
-        <ReferenceShell finish={finish} engraving={engraving} indicator={ledMat} shadows={shadows} />
+        <RoundedBox
+          name="reference-housing"
+          args={[DEVICE.w, DEVICE.sleeveH, DEVICE.d]}
+          radius={DEVICE.radius}
+          smoothness={6}
+          position={[0, SLEEVE_BASE + DEVICE.sleeveH / 2, 0]}
+          material={mats.shell}
+          castShadow={shadows}
+          receiveShadow={shadows}
+        />
 
         {/* finished underside, visible while the sleeve hovers: a recessed
             dark ceiling field with the ventilation ribs reorganized as
@@ -152,9 +206,69 @@ export function Appliance({ quality, mobile = false, reducedMotion = false }: { 
           <CeilingRibs count={quality.tier === 'high' ? 15 : 9} />
         </group>
 
+        {/* Real rounded bevels and the chassis junction supply the edge
+            highlights/shadow gap, without disconnected overlay bars. */}
+
+        {/* front face: clean fascia with restrained instrumentation */}
+        <group position={[0, 0, DEVICE.d / 2 + 0.004]}>
+          {/* recessed status display, upper right */}
+          <group position={[0.34, SLEEVE_BASE + DEVICE.sleeveH - 0.16, 0]}>
+            <mesh material={mats.inset}>
+              <boxGeometry args={[0.3, 0.084, 0.008]} />
+            </mesh>
+            <mesh position={[0, 0, 0.0045]} material={mats.bezel}>
+              <boxGeometry args={[0.284, 0.07, 0.004]} />
+            </mesh>
+            <mesh position={[0, 0, 0.007]}>
+              <planeGeometry args={[0.27, 0.0605]} />
+              <meshBasicMaterial map={statusTexture} toneMapped={false} />
+            </mesh>
+          </group>
+          {/* status light, upper left */}
+          <mesh
+            position={[-0.5, SLEEVE_BASE + DEVICE.sleeveH - 0.16, 0.002]}
+            rotation-x={Math.PI / 2}
+            material={ledMat}
+          >
+            <cylinderGeometry args={[0.007, 0.007, 0.005, 18]} />
+          </mesh>
+          <mesh
+            position={[-0.5, SLEEVE_BASE + DEVICE.sleeveH - 0.16, 0.001]}
+            rotation-x={Math.PI / 2}
+            material={mats.shellTrim}
+          >
+            <cylinderGeometry args={[0.013, 0.013, 0.003, 18]} />
+          </mesh>
+          {/* machined horizontal reveal across the fascia */}
+          <ExteriorDetail name="exterior-seam" position={[0, SLEEVE_BASE + DEVICE.sleeveH - 0.24, -0.003]}
+            material={exteriorTrim} size={[DEVICE.w - 2 * (DEVICE.radius + 0.035), 0.0035, 0.002]} />
+          {/* engraved wordmark, lower right */}
+          <mesh position={[0.44, SLEEVE_BASE + 0.085, 0.001]}>
+            <planeGeometry args={[0.17, 0.053]} />
+            <meshBasicMaterial map={engraving} transparent depthWrite={false} />
+          </mesh>
+        </group>
+
+        {/* precise ventilation bands on the sides and rear only */}
+        <group
+          position={[DEVICE.w / 2 + 0.004, SLEEVE_BASE + 0.27, 0]}
+          rotation-y={Math.PI / 2}
+        >
+          <VentBand count={finCount} width={0.96} trim={exteriorTrim} />
+        </group>
+        <group
+          position={[-(DEVICE.w / 2 + 0.004), SLEEVE_BASE + 0.27, 0]}
+          rotation-y={-Math.PI / 2}
+        >
+          <VentBand count={finCount} width={0.96} trim={exteriorTrim} />
+        </group>
+        <group position={[0, SLEEVE_BASE + 0.27, -(DEVICE.d / 2 + 0.004)]} rotation-y={Math.PI}>
+          <VentBand count={finCount} width={0.96} trim={exteriorTrim} />
+        </group>
+
         {/* recessed port field low on the rear face */}
         <group position={[0.3, SLEEVE_BASE + 0.09, -(DEVICE.d / 2 + 0.004)]} rotation-y={Math.PI}>
-          <ExteriorDetail name="exterior-port-field" material={finish.edge} size={[0.36, 0.07, 0.006]} position={[0, 0, 0]} radius={0.003} />
+          <ExteriorDetail name="exterior-port-field" material={exteriorTrim} size={[0.36, 0.07, 0.006]} position={[0, 0, 0]} radius={0.003} />
           {[-0.13, -0.065, 0, 0.065].map((x) => (
             <ExteriorDetail name="exterior-port-opening" key={x} position={[x, 0, 0.004]} material={mats.bezel} size={[0.044, 0.015, 0.002]} />
           ))}
@@ -162,6 +276,15 @@ export function Appliance({ quality, mobile = false, reducedMotion = false }: { 
             <cylinderGeometry args={[0.012, 0.012, 0.002, 20]} />
           </mesh>
         </group>
+
+        {/* recessed top vent slot near the rear edge */}
+        <ExteriorDetail
+          name="exterior-top-slot"
+          position={[0, SLEEVE_BASE + DEVICE.sleeveH + 0.0015, -(DEVICE.d / 2 - 0.13)]}
+          material={mats.inset}
+          size={[0.72, 0.004, 0.035]}
+          radius={0.002}
+        />
       </group>
 
       {/* soft contact shadow under the appliance */}

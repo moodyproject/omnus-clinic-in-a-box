@@ -114,10 +114,10 @@ function RoleSelect({
 }) {
   return (
     <select {...fieldProps} value={value} onChange={(e) => onChange(e.target.value)}>
-      <option value="">select a role</option>
+      <option value="">Select a role</option>
       {forms.roles.map((r) => (
         <option key={r} value={r}>
-          {r}
+          {r.charAt(0).toUpperCase() + r.slice(1)}
         </option>
       ))}
     </select>
@@ -212,9 +212,9 @@ export function DemoDialog({ onClose }: { onClose: () => void }) {
           <div className="form-footer">
             <ResultNote result={flow.result} />
             <button className="btn btn-primary" type="submit" disabled={flow.phase === 'pending'}>
-              {flow.phase === 'pending' ? <span className="spinner" aria-label="sending" /> : copy.submit}
+              {flow.phase === 'pending' ? <span className="spinner" aria-label="Sending" /> : copy.submit}
             </button>
-            <p className="form-note">we only use this to set up your walkthrough.</p>
+            <p className="form-note">We only use this to set up your walkthrough.</p>
           </div>
         </form>
       )}
@@ -270,7 +270,7 @@ export function WaitlistDialog({ onClose }: { onClose: () => void }) {
           <div className="form-footer">
             <ResultNote result={flow.result} />
             <button className="btn btn-primary" type="submit" disabled={flow.phase === 'pending'}>
-              {flow.phase === 'pending' ? <span className="spinner" aria-label="sending" /> : copy.submit}
+              {flow.phase === 'pending' ? <span className="spinner" aria-label="Sending" /> : copy.submit}
             </button>
           </div>
         </form>

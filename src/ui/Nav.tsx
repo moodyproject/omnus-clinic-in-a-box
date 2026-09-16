@@ -22,11 +22,11 @@ export function Nav({ onNavigate, onBookDemo }: Props) {
       <button
         className="wordmark"
         onClick={() => onNavigate('top')}
-        aria-label="omnus, back to top"
+        aria-label="Omnus, back to top"
       >
         {misc.wordmark}
       </button>
-      <nav className="nav-links" aria-label="primary">
+      <nav className="nav-links" aria-label="Primary">
         {nav.links.map((link) => (
           <button key={link.target} className="nav-link" onClick={() => onNavigate(link.target)}>
             {link.label}

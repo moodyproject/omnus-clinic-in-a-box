@@ -1,0 +1,20 @@
+[Unit]
+Description=Omnus Node isolated approved 3D marketing site
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/moud/omnus-node/releases/mo-sha256-7fbafd51b2b866244a8583be0bcb52a4b855e6a2ff06c9d0c0724d24b84fb08a
+ExecStart=/home/moud/.local/share/omnus-node/python-runtime/bin/python3 -m http.server 8082 --bind 127.0.0.1 --directory /home/moud/omnus-node/releases/mo-sha256-7fbafd51b2b866244a8583be0bcb52a4b855e6a2ff06c9d0c0724d24b84fb08a
+Restart=on-failure
+RestartSec=3
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=default.target

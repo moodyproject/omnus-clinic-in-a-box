@@ -1,0 +1,37 @@
+{
+  "total": 13152224,
+  "packFile": "models/pack/clinic-models.ab6a42b1a44d2448.zst",
+  "packSha256": "ab6a42b1a44d2448f97a2aa638773eeb83615ebbd400ceb5635783ef1830bdd1",
+  "files": [
+    {
+      "name": "clinic-shell",
+      "offset": 0,
+      "length": 86824,
+      "sha256": "11c529a6397a095d3f4c6c9bd6dfc2940d8c2fe1d30994bae0f4678de0e61593"
+    },
+    {
+      "name": "consultation",
+      "offset": 86824,
+      "length": 1528980,
+      "sha256": "532b1f0724022b6259854f352d7d1c38631995ce012914f73baceadd22e41063"
+    },
+    {
+      "name": "physician-seated",
+      "offset": 1615804,
+      "length": 2864800,
+      "sha256": "7d05b1b2d130b6ffae59c222ff5a74fe89a701e3d89124fd3bf48ce6aee852e2"
+    },
+    {
+      "name": "patient-seated",
+      "offset": 4480604,
+      "length": 2314748,
+      "sha256": "dfb74a9a83761be7828c3ec4a1e511be41ce427e60edb9b1b6370b2a3472aeb3"
+    },
+    {
+      "name": "room-people",
+      "offset": 6795352,
+      "length": 6356872,
+      "sha256": "60ccb4656e61402895beb7b56e8241b4201a54083384175db80a20dca8948617"
+    }
+  ]
+}

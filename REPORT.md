@@ -124,3 +124,51 @@ directions), camera convergence, 12 rapid direction reversals clean.
   photoreal product furniture; going past that ceiling would require
   sculpted glb assets with baked texture sets, which this pass deliberately
   avoids to stay license-free and keep the bundle procedural.
+
+---
+
+# September 23: Mo copy on current Node 3D site (local candidate)
+
+The earlier July visual-quality report above is historical. This section documents the isolated copy-only candidate in `/Users/moud/coding/.worktrees/omnus-clinic-mo-copy` on `design/omnus-clinic-mo-copy`, based on `0df8c3ee2c8c295c93ff85c214c021c270515062` plus the uncommitted cold-load runtime overlay. No publication, commit, push, server/clinical operation, or live cold-load worktree edit occurred.
+
+## User, source, and job
+
+Independent physician evaluating an integrated hematology-first clinic workspace while retaining final clinical authority. `/Users/moud/jarvis/build-shop/projects/omnus/NEXT.md:197` and `/Users/moud/coding/node-omnuslabs/VALIDATION.md:141-145` identify Moud's supplied Mo homepage copy as locally implemented on September 10. The editable source is `/Users/moud/coding/node-omnuslabs/src/data/copy.json:3-7,20-21,32-33` for hero/visit/waitlist and `/Users/moud/coding/node-omnuslabs/src/components/ClinicalJourney.astro:4-25` for visit details. Those files later accrued workflow polish; they are not a frozen verbatim September 10 snapshot. The upload-instructions handoff contains access commands, not copy. `/Users/moud/jarvis/build-shop/projects/omnus/CONTEXT.md:7` sets the current positioning constraints: lead with Mo's “The Clinical AI Workspace,” avoid box language, and distinguish future capability using “designed to.”
+
+## Exact product copy diff
+
+Only `src/content/copy.ts` was edited relative to the cold-load live source. Mo's headline and subheader are verbatim; the rest adapts Mo's meaning to the shorter 3D scene slots and existing capability states. All strings below are old → new:
+
+- Opening eyebrow: `The clinical AI workspace` → `Omnus Labs`
+- Opening H1: `Your clinic. Wherever you practice.` → `The Clinical AI Workspace`
+- Opening body: `A complete clinical AI workspace, designed to run on your own hardware. Charting, visits, record synthesis, decision support, and physician-approved orders, starting with hematology.` → `Run your complete clinic from home, office, or anywhere with power. Omnus is designed to bring charting, visits, record synthesis, decision support, and physician-approved orders together on your own hardware. We start with hematology.`
+- Intake body: `Agents are designed to organize intake, flag what needs attention, and assemble the patient’s history before the physician walks in.` → `Agents are designed to bring the patient’s presentation, outside records, referral notes, and previous encounters into one pre-visit summary for physician review.`
+- Real-time AI body: `The doctor focuses on the patient. Omnus transcribes the visit and extracts clinical details from the conversation as it happens.` → `Stay focused on the patient while Omnus transcribes the conversation and extracts clinical details as the visit unfolds. Note drafting and proposed orders are designed for physician review, not automatic approval.`
+- Physician sign-off body: `Omnus prepares the draft. The physician reviews, corrects, and approves what becomes final. The agents assist; the doctor decides.` → `Omnus is designed to prepare a note and proposed orders for review before the encounter is finalized. Physician approval determines what is saved to the record and which next steps are authorized. The AI drafts, the doctor decides.`
+- Follow-through body: `After physician approval, agents are designed to coordinate referrals and follow-up through connected systems and APIs.` → `After physician approval, agents are designed to coordinate follow-up, referrals, prescriptions, laboratory tests, and imaging through connected systems. Nothing proceeds on an AI draft alone.`
+- Connected clinic body: `From triage to follow-through, one local operating layer connects the agents, the visit, and the work around it. The physician leads the care.` → `Omnus is designed to bring the patient timeline, live visit, draft note, and proposed orders into one workflow. The physician reviews and approves every clinical decision. The AI drafts, the doctor decides.`
+- Conversion body: `Omnus gives independent physicians everything they need so a doctor can focus on being a doctor. Walk through the system with us, or follow along as it grows.` → `We start with hematology. Omnus is designed to bring the whole clinic workflow onto your own hardware, with every clinical decision reviewed by the physician. Walk through what works today, or follow along as the workspace grows.`
+
+## Hierarchy, states and scope
+
+Opening H1 → complete-clinic ambition and hematology wedge → eight-scene 3D physician journey → existing demo/waitlist conversion. The existing `Working now`, `Now expanding`, and `The system we’re building` labels, CTA names/targets, forms, loading and Retry, scroll gate, scene, geometry, model pack, and all presentation styles are unchanged. Future chart/order/record features are described as designed to. Neither this site nor its copy writes a chart or authorizes orders; no patient client or transcript behavior changed. The strong source assertion that every part of a complete clinic already runs locally was not transferred as an unqualified present-tense claim.
+
+The worktree was made with `git worktree add` from the cold-load branch's HEAD, then its eight modified runtime files and two generated pack directories were overlaid. All 12 overlaid files match the cold-load source byte-for-byte. Local `node_modules` is a symlink to the installed sibling dependencies, not part of a release. Marketing copy scan found zero em dashes, zero box-language matches, and six `designed to` instances.
+
+## Build, preview, responsive and accessibility evidence
+
+`npm run build` PASS (TypeScript + Vite, 642 modules, 3.34s); `npm run lint` PASS; `git diff --check` PASS. Loopback-only production preview: `http://127.0.0.1:64838/`. Restart from this worktree with `npm run preview -- --host 127.0.0.1 --port 64838 --strictPort` after `npm run build`. The existing QA pose also works: `http://127.0.0.1:64838/?pose=0.58`.
+
+Real Chromium at desktop 1440×900: new H1, canvas visible after loading, no scene error, scroll width/client width 1425/1425. At phone 390×844: opening H1, body, actions, and current-state line fit the opening region; canvas visible after loading, no scene error, scroll width/client width 390/390. The physician-review scene at `?pose=0.58` rendered its changed copy and scene on both sizes. Existing semantic H1, state chips and buttons remain, but no screen reader or physical phone was tested. Screenshots are for human visual inspection, not a claim of aesthetic acceptance:
+
+- `docs/evidence/mo-copy/desktop-1440.png`
+- `docs/evidence/mo-copy/phone-390.png`
+- `docs/evidence/mo-copy/desktop-1440-review.png`
+- `docs/evidence/mo-copy/phone-390-review.png`
+- `docs/evidence/mo-copy/live-baseline-1280-review.png` (public baseline at 1280×633, not pixel-aligned with local 1440 capture)
+
+Read-only public `https://node.omnuslabs.com/?pose=0.58` still shows the original H1/review copy, visible canvas and no scene error. It fetches the same content-addressed model pack `clinic-models.ab6a42b1a44d2448.zst` and CSS file `index-BXf8rVyX.css` as the local build. That plus exact runtime-source parity supports unchanged scene/loading/scroll implementation, not a pixel-exact comparison or a fresh cold-load timing guarantee. Source proof and browser rendering are distinct from human visual approval.
+
+## Acceptance and open decision
+
+Moud should approve the adapted Mo prose and real-browser visuals before the controller considers publication. Omnus Health should confirm current-versus-future clinical claims, particularly record synthesis and orders. Omnus CTO owns synthesis and the choice of short 3D-scene adaptation versus Mo's verbatim long-form paragraphs; Omnus Validator should independently review the candidate. No Node publication, apex/www change, clinical service change, DNS change, commit or push was performed or authorized by this local report.

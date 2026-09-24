@@ -40,10 +40,10 @@ export const scenes: SceneCopy[] = [
   {
     id: 'object',
     side: 'left',
-    eyebrow: 'The clinical AI workspace',
-    heading: 'Your clinic. Wherever you practice.',
+    eyebrow: 'Omnus Labs',
+    heading: 'The Clinical AI Workspace',
     headingLevel: 1,
-    body: 'A complete clinical AI workspace, designed to run on your own hardware. Charting, visits, record synthesis, decision support, and physician-approved orders, starting with hematology.',
+    body: 'Run your complete clinic from home, office, or anywhere with power. Omnus is designed to bring charting, visits, record synthesis, decision support, and physician-approved orders together on your own hardware. We start with hematology.',
     actions: true,
     status: 'Working now: live visits, transcription, and clinical extraction',
   },
@@ -59,7 +59,7 @@ export const scenes: SceneCopy[] = [
     side: 'left',
     heading: 'Triage & intake',
     headingLevel: 2,
-    body: 'Agents are designed to organize intake, flag what needs attention, and assemble the patient’s history before the physician walks in.',
+    body: 'Agents are designed to bring the patient’s presentation, outside records, referral notes, and previous encounters into one pre-visit summary for physician review.',
     stateLabel: 'the system we’re building',
   },
   {
@@ -67,7 +67,7 @@ export const scenes: SceneCopy[] = [
     side: 'left',
     heading: 'Real-time AI',
     headingLevel: 2,
-    body: 'The doctor focuses on the patient. Omnus transcribes the visit and extracts clinical details from the conversation as it happens.',
+    body: 'Stay focused on the patient while Omnus transcribes the conversation and extracts clinical details as the visit unfolds. Note drafting and proposed orders are designed for physician review, not automatic approval.',
     stateLabel: 'working now',
   },
   {
@@ -75,7 +75,7 @@ export const scenes: SceneCopy[] = [
     side: 'left',
     heading: 'Physician sign-off',
     headingLevel: 2,
-    body: 'Omnus prepares the draft. The physician reviews, corrects, and approves what becomes final. The agents assist; the doctor decides.',
+    body: 'Omnus is designed to prepare a note and proposed orders for review before the encounter is finalized. Physician approval determines what is saved to the record and which next steps are authorized. The AI drafts, the doctor decides.',
     stateLabel: 'now expanding',
   },
   {
@@ -83,7 +83,7 @@ export const scenes: SceneCopy[] = [
     side: 'left',
     heading: 'Approved. Then follow-through.',
     headingLevel: 2,
-    body: 'After physician approval, agents are designed to coordinate referrals and follow-up through connected systems and APIs.',
+    body: 'After physician approval, agents are designed to coordinate follow-up, referrals, prescriptions, laboratory tests, and imaging through connected systems. Nothing proceeds on an AI draft alone.',
     stateLabel: 'the system we’re building',
   },
   {
@@ -91,7 +91,7 @@ export const scenes: SceneCopy[] = [
     side: 'left',
     heading: 'One connected clinic.',
     headingLevel: 2,
-    body: 'From triage to follow-through, one local operating layer connects the agents, the visit, and the work around it. The physician leads the care.',
+    body: 'Omnus is designed to bring the patient timeline, live visit, draft note, and proposed orders into one workflow. The physician reviews and approves every clinical decision. The AI drafts, the doctor decides.',
     stateLabel: 'the system we’re building',
   },
   {
@@ -121,7 +121,7 @@ export const actions = {
 
 export const conversion = {
   heading: 'See Omnus in your clinic.',
-  body: 'Omnus gives independent physicians everything they need so a doctor can focus on being a doctor. Walk through the system with us, or follow along as it grows.',
+  body: 'We start with hematology. Omnus is designed to bring the whole clinic workflow onto your own hardware, with every clinical decision reviewed by the physician. Walk through what works today, or follow along as the workspace grows.',
   status: 'Working today: live video visits, visit transcription, and clinical extraction. The rest of the workspace shown above is in active development.',
 }
 

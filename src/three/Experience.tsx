@@ -1,4 +1,4 @@
-import { Component, useEffect, type ReactNode } from 'react'
+import { Component, useCallback, useEffect, useState, type ReactNode } from 'react'
 import { Canvas, useThree } from '@react-three/fiber'
 import { WebGLRenderer } from 'three'
 import { Studio } from './Studio'
@@ -11,11 +11,11 @@ import type { SceneFailure } from '../lib/sceneFailure'
 import { subscribeJourney } from '../scroll/journey'
 
 /**
- * fires onReady once the scene graph is mounted, and (dev only) exposes a
+ * (dev only) exposes a
  * manual frame driver so hidden/headless tabs, where requestAnimationFrame
  * is throttled to zero, can still render frames for qa screenshots.
  */
-function SceneDriver({ active, onReady, onError }: { active: boolean; onReady?: () => void; onError: (stage: SceneFailure) => void }) {
+function SceneDriver({ active, onError }: { active: boolean; onError: (stage: SceneFailure) => void }) {
   const advance = useThree((s) => s.advance)
   const get = useThree((s) => s.get)
   const gl = useThree((s) => s.gl)
@@ -36,7 +36,6 @@ function SceneDriver({ active, onReady, onError }: { active: boolean; onReady?: 
   }, [gl, onError])
 
   useEffect(() => {
-    onReady?.()
     if (!import.meta.env.DEV) return
     const w = window as unknown as Record<string, unknown>
     w.__omnus = get()
@@ -45,7 +44,7 @@ function SceneDriver({ active, onReady, onError }: { active: boolean; onReady?: 
       delete w.__omnus
       delete w.__omnusAdvance
     }
-  }, [advance, get, onReady])
+  }, [advance, get])
 
   return null
 }
@@ -71,8 +70,13 @@ class SceneBoundary extends Component<{ children: ReactNode; onError: (stage: Sc
  * journey is off-screen or the tab is hidden.
  */
 export function Experience({ quality, mobile, reducedMotion, active, onReady, onError }: Props) {
+  const [ready, setReady] = useState(false)
+  const interiorReady = useCallback(() => {
+    setReady(true)
+    onReady?.()
+  }, [onReady])
   return (
-    <div className="journey-canvas" aria-hidden="true">
+    <div className="journey-canvas" aria-hidden="true" style={{ visibility: ready ? undefined : 'hidden' }}>
       <SceneBoundary onError={onError}>
       <Canvas
         dpr={quality.dpr}
@@ -98,10 +102,10 @@ export function Experience({ quality, mobile, reducedMotion, active, onReady, on
       >
         <Studio quality={quality} />
         <Appliance quality={quality} mobile={mobile} reducedMotion={reducedMotion} />
-        <AcceptedClinic onError={onError} />
+        <AcceptedClinic onError={onError} onReady={interiorReady} />
         <CameraRig mobile={mobile} reducedMotion={reducedMotion} />
         <MobileResolution mobile={mobile} active={active} quality={quality} />
-        <SceneDriver active={active} onReady={onReady} onError={onError} />
+        <SceneDriver active={active} onError={onError} />
       </Canvas>
       </SceneBoundary>
     </div>

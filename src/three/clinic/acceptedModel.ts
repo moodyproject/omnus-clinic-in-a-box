@@ -4,18 +4,42 @@ import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js'
 import { installAnimatedBounds } from './animatedBounds'
 import { installRobotAgents } from './robotAgents'
 import { installFemaleVisitor } from './femaleVisitor'
+import { loadClinicPack } from './pack/loadPack'
 
 const ASSETS = ['clinic-shell', 'consultation', 'physician-seated', 'patient-seated', 'room-people'] as const
 
 /** An owned scene, not the shared useGLTF cache: cleanup also handles partial loads. */
-export async function loadAcceptedModel(base: string, cancelled: () => boolean) {
+export async function loadAcceptedModel(base: string, signal: AbortSignal) {
   const root = new THREE.Group()
   root.name = 'accepted-clinic'
   root.scale.setScalar(0.1)
   const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder)
+  const requests = new AbortController()
+  const abort = () => requests.abort()
+  signal.addEventListener('abort', abort, { once: true })
+  if (signal.aborted) abort()
+  const owned = new THREE.Group()
+  let failed = false
   try {
-    for (const name of ASSETS) {
-      const { scene, animations } = await loader.loadAsync(`${base}models/3d-redesign/${name}.glb`)
+    // One lossless transport pack (preloaded from index.html) carries the
+    // exact bytes of all five GLBs. Decode concurrently, but assemble in
+    // authored dependency order. Every completed decode is owned even if
+    // another parse fails first.
+    const path = `${base}models/3d-redesign/`
+    const glbs = await loadClinicPack(base, requests.signal)
+    const models = await Promise.all(ASSETS.map(async name => {
+      const bytes = glbs.get(name)
+      if (!bytes) throw new Error('Clinic asset unavailable')
+      const model = await loader.parseAsync(bytes, path)
+      if (failed || requests.signal.aborted) {
+        disposeModel(model.scene)
+        throw new Error('Clinic load cancelled')
+      }
+      owned.add(model.scene)
+      return model
+    }))
+    for (const [index, name] of ASSETS.entries()) {
+      const { scene, animations } = models[index]
       scene.animations = animations
       scene.name = name
       if (name === 'physician-seated') scene.position.set(2.65, 0, 2.1)
@@ -49,13 +73,18 @@ export async function loadAcceptedModel(base: string, cancelled: () => boolean) 
         installFemaleVisitor(scene, root.getObjectByName('patient-seated')!)
         installRobotAgents(scene)
       }
-      if (cancelled()) throw new Error('Clinic load cancelled')
+      requests.signal.throwIfAborted()
     }
     installAnimatedBounds(root)
     return root
   } catch (error) {
+    failed = true
+    requests.abort()
+    disposeModel(owned)
     disposeModel(root)
     throw error
+  } finally {
+    signal.removeEventListener('abort', abort)
   }
 }
 

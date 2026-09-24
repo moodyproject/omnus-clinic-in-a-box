@@ -8,8 +8,11 @@ import { createAcceptedMotion } from './acceptedMotion'
 import type { SceneFailure } from '../../lib/sceneFailure'
 
 /** The accepted scene replaces the entire procedural clinic/people subtree. */
-export function AcceptedClinic({ onError }: { onError: (stage: SceneFailure) => void }) {
+export function AcceptedClinic({ onError, onReady }: { onError: (stage: SceneFailure) => void; onReady?: () => void }) {
   const invalidate = useThree(s => s.invalidate)
+  const gl = useThree(s => s.gl)
+  const scene = useThree(s => s.scene)
+  const camera = useThree(s => s.camera)
   const mount = useRef<THREE.Group>(null)
   const update = useRef<((cut: number) => void) | null>(null)
   const motion = useRef<ReturnType<typeof createAcceptedMotion> | null>(null)
@@ -17,9 +20,11 @@ export function AcceptedClinic({ onError }: { onError: (stage: SceneFailure) => 
   useEffect(() => {
     let cancelled = false
     let model: THREE.Group | undefined
+    const controller = new AbortController()
+    let readyFrame = 0
     const parent = mount.current
-    const timeout = window.setTimeout(() => { if (!cancelled) onError('asset-timeout') }, 45000)
-    void loadAcceptedModel(import.meta.env.BASE_URL, () => cancelled).then((loaded) => {
+    const timeout = window.setTimeout(() => { if (!cancelled) { controller.abort(); onError('asset-timeout') } }, 45000)
+    void loadAcceptedModel(import.meta.env.BASE_URL, controller.signal).then((loaded) => {
       window.clearTimeout(timeout)
       if (cancelled) { disposeModel(loaded); return }
       model = loaded
@@ -27,18 +32,32 @@ export function AcceptedClinic({ onError }: { onError: (stage: SceneFailure) => 
       parent?.add(model)
       update.current = createWallCutaway(model)
       motion.current = createAcceptedMotion(model)
+      // Prepare existing materials/textures behind the loading presentation.
+      // No camera, geometry, quality or authored pose is changed.
+      gl.compile(model, camera, scene)
+      const textures = new Set<THREE.Texture>()
+      model.traverseVisible(node => {
+        if (!(node instanceof THREE.Mesh)) return
+        for (const material of Array.isArray(node.material) ? node.material : [node.material]) {
+          for (const value of Object.values(material)) if (value instanceof THREE.Texture) textures.add(value)
+        }
+      })
+      textures.forEach(texture => gl.initTexture(texture))
       // This imperative async attachment is outside React's invalidation.
       invalidate()
-    }).catch(() => { window.clearTimeout(timeout); if (!cancelled) onError('asset-load') })
+      readyFrame = requestAnimationFrame(() => { if (!cancelled) onReady?.() })
+    }).catch(() => { window.clearTimeout(timeout); if (!cancelled && !controller.signal.aborted) onError('asset-load') })
     return () => {
       cancelled = true
+      controller.abort()
+      cancelAnimationFrame(readyFrame)
       window.clearTimeout(timeout)
       update.current = null
       motion.current?.dispose()
       motion.current = null
       if (model) { parent?.remove(model); disposeModel(model) }
     }
-  }, [onError, invalidate])
+  }, [onError, onReady, invalidate, gl, scene, camera])
 
   useFrame(() => {
     const p = smoothedState.p

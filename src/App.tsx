@@ -42,6 +42,7 @@ export default function App() {
       return
     }
 
+    ;(window as unknown as { __lockScrollGate?: () => void }).__lockScrollGate?.()
     setFailure(null)
     window.scrollTo({ top: 0, behavior: 'instant' })
   }
